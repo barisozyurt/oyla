@@ -35,7 +35,6 @@
                 height="30"
                 onerror="this.style.display='none'"
             >
-            Oyla
         </a>
 
         <!-- Hamburger toggle -->
