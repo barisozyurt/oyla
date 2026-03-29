@@ -270,7 +270,7 @@ $flashInfo    = getFlash('info');
             &copy; <?= date('Y') ?> Oyla &mdash; Dijital Seçim Yönetim Sistemi
         </span>
         <span class="text-muted small">
-            5253 sayılı Dernekler Kanunu kapsamında
+            Dernekler için dijital seçim sistemi
         </span>
     </div>
 </footer>

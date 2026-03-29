@@ -73,7 +73,7 @@
 
     <!-- Alt not -->
     <p class="text-center text-white-50 small mt-4 mb-0">
-        &copy; <?= date('Y') ?> Oyla &mdash; 5253 sayılı Dernekler Kanunu
+        &copy; <?= date('Y') ?> Oyla &mdash; Dernekler için dijital seçim sistemi
     </p>
 
 </div>
