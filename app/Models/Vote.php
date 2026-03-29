@@ -38,7 +38,7 @@ class Vote extends Model
                     COUNT(v.id) as vote_count
              FROM candidates c
              LEFT JOIN votes v ON v.ballot_id = c.ballot_id
-                  AND JSON_CONTAINS(v.encrypted_choice, CAST(c.id AS JSON))
+                  AND JSON_CONTAINS(v.encrypted_choice, CONCAT('', c.id))
              WHERE c.ballot_id = ?
              GROUP BY c.id, c.name, c.photo_path, c.candidate_no, c.sort_order
              ORDER BY vote_count DESC, c.sort_order ASC"

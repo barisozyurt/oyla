@@ -15,12 +15,7 @@
         href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap"
     >
     <!-- Bootstrap 5.3 -->
-    <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-        crossorigin="anonymous"
-    >
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <!-- Bootstrap Icons -->
     <link
         rel="stylesheet"
@@ -78,8 +73,6 @@
 <!-- Bootstrap 5.3 JS Bundle -->
 <script
     src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jzmcalR2P1HPBXRHoQfHXlgcMb2bj"
-    crossorigin="anonymous"
 ></script>
 <script src="<?= asset('js/app.js') ?>"></script>
 </body>

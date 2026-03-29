@@ -101,6 +101,24 @@ Seçim kapandıktan sonra divan başkanı **PDF Tutanak** oluşturur. Tutanak; d
 | 5 | Oylama Ekranı | `/oy/{token}` | Oy kullanan üye | Tamamlandı |
 | 6 | Admin Paneli | `/admin` | Sistem yöneticisi | Tamamlandı |
 
+### Ekran Görüntüleri
+
+| Giriş Ekranı | Admin Paneli |
+|:---:|:---:|
+| ![Giriş](assets/screenshots/1.png) | ![Admin Dashboard](assets/screenshots/3.png) |
+
+| Sonuç Ekranı | Üye Yönetimi |
+|:---:|:---:|
+| ![Sonuçlar](assets/screenshots/4.png) | ![Üye Listesi](assets/screenshots/5.png) |
+
+| Kurul Yönetimi | Divan Paneli |
+|:---:|:---:|
+| ![Kurullar](assets/screenshots/6.png) | ![Divan](assets/screenshots/7.png) |
+
+| Görevli Masası | Perde Modu (Projeksiyon) |
+|:---:|:---:|
+| ![Görevli](assets/screenshots/8.png) | ![Perde Modu](assets/screenshots/9.png) |
+
 ---
 
 ## Özellikler

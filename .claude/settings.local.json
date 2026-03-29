@@ -15,7 +15,8 @@
       "Bash(php8 -l /c/Users/BarisOzyurt/Documents/code/oyla/app/Controllers/GorevliController.php)",
       "Bash(\"C:/php/php.exe\" -l \"C:/Users/BarisOzyurt/Documents/code/oyla/app/Controllers/GorevliController.php\")",
       "Bash(php -l /c/Users/BarisOzyurt/Documents/code/oyla/app/Controllers/TestModeController.php)",
-      "Bash(wc -l c:/Users/BarisOzyurt/Documents/code/oyla/config/*.php)"
+      "Bash(wc -l c:/Users/BarisOzyurt/Documents/code/oyla/config/*.php)",
+      "Bash(docker compose:*)"
     ]
   }
 }
