@@ -37,8 +37,7 @@
             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
         >
         <div class="auth-logo-fallback" style="display:none">O</div>
-        <h1 class="text-white fw-bold fs-3 mb-1">Oyla</h1>
-        <p class="text-white-50 small mb-0">Dijital Seçim Yönetim Sistemi</p>
+        <p class="text-white-50 small mt-2 mb-0">Dijital Seçim Yönetim Sistemi</p>
     </div>
 
     <!-- Flash mesajları -->
