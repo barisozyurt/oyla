@@ -2,8 +2,6 @@
   <img src="assets/img/logo.svg" alt="Oyla" width="200">
 </p>
 
-<h1 align="center">Oyla</h1>
-
 <p align="center"><strong>Türk dernekleri için güvenli, şeffaf ve kriptografik doğrulamalı dijital seçim yönetim sistemi.</strong></p>
 
 <p align="center">
