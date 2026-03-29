@@ -279,5 +279,11 @@ $flashInfo    = getFlash('info');
 ></script>
 <!-- Uygulama scripti -->
 <script src="<?= asset('js/app.js') ?>"></script>
+<?php
+$uri = $_SERVER['REQUEST_URI'] ?? '';
+if (str_starts_with($uri, '/admin')):
+?>
+<script src="<?= asset('js/admin.js') ?>"></script>
+<?php endif; ?>
 </body>
 </html>
