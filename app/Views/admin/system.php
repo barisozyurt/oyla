@@ -87,7 +87,7 @@
     <div class="col-12 col-md-6">
         <div class="card border-0 shadow-sm h-100">
             <div class="card-body d-flex align-items-center gap-3 py-4">
-                <div id="indicator-disk" class="status-indicator rounded-circle" style="width:16px;height:16px;background:#0d6efd;flex-shrink:0"></div>
+                <div id="indicator-disk" class="status-indicator rounded-circle" style="width:16px;height:16px;background:#1D9E75;flex-shrink:0"></div>
                 <div class="flex-grow-1">
                     <div class="fw-semibold">Boş Disk Alanı</div>
                     <div id="val-disk" class="text-muted small">—</div>
@@ -130,7 +130,7 @@
         ok:      '#198754',
         warning: '#ffc107',
         error:   '#dc3545',
-        info:    '#0d6efd',
+        info:    '#1D9E75',
     };
 
     function setIndicator(id, color) {

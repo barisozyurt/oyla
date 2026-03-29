@@ -82,12 +82,12 @@ $bodyClass = 'voting-mode';
         transition: border-color .15s;
         box-sizing: border-box;
     }
-    .verify-input:focus { border-color: #1d4ed8; }
+    .verify-input:focus { border-color: #1D9E75; }
     .verify-input::placeholder { letter-spacing: normal; font-weight: 400; color: #94a3b8; }
 
     .btn-verify {
         width: 100%;
-        background: #1d4ed8;
+        background: #1D9E75;
         color: #fff;
         border: none;
         border-radius: 8px;
@@ -152,7 +152,7 @@ $bodyClass = 'voting-mode';
         text-decoration: none;
         margin-top: 20px;
     }
-    .vote-link:hover { color: #1d4ed8; text-decoration: underline; }
+    .vote-link:hover { color: #1D9E75; text-decoration: underline; }
 </style>
 
 <div class="verify-wrapper">
@@ -161,9 +161,9 @@ $bodyClass = 'voting-mode';
     <div class="verify-header">
         <div class="verify-icon">
             <svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M19 3L35 31H3L19 3Z" fill="#dbeafe" stroke="#1d4ed8"
+                <path d="M19 3L35 31H3L19 3Z" fill="#e8f5ef" stroke="#1D9E75"
                       stroke-width="1.5" stroke-linejoin="round"/>
-                <path d="M15 13l4 4 8-8" stroke="#1d4ed8" stroke-width="2"
+                <path d="M15 13l4 4 8-8" stroke="#1D9E75" stroke-width="2"
                       stroke-linecap="round" stroke-linejoin="round"/>
                 <circle cx="30" cy="28" r="7" fill="#16a34a"/>
                 <path d="M27.5 28l2 2 3-3" stroke="white" stroke-width="1.5"

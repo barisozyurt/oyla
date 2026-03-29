@@ -93,8 +93,8 @@
     <div class="col-6 col-lg-3">
         <div class="card border-0 shadow-sm h-100 text-center">
             <div class="card-body py-4">
-                <div class="fs-1 fw-bold text-purple" id="participation-pct"
-                     style="color: #7c3aed;">
+                <div class="fs-1 fw-bold" id="participation-pct"
+                     style="color: var(--oyla-primary);">
                     <?= $stats['participation_pct'] ?>%
                 </div>
                 <div class="text-muted mt-1 fs-5">Katılım Oranı</div>

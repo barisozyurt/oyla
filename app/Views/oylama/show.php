@@ -15,15 +15,15 @@ $bodyClass = 'voting-mode';
 <style>
     /* Oylama ekranına özgü stiller */
     :root {
-        --vote-primary:   #1d4ed8;
+        --vote-primary:   #1D9E75;
         --vote-success:   #16a34a;
         --vote-danger:    #dc2626;
         --vote-surface:   #ffffff;
         --vote-border:    #e2e8f0;
         --vote-muted:     #64748b;
         --vote-text:      #1e293b;
-        --vote-selected:  #dbeafe;
-        --vote-selected-border: #1d4ed8;
+        --vote-selected:  #e8f5ef;
+        --vote-selected-border: #1D9E75;
         --vote-disabled-bg: #f1f5f9;
         --vote-disabled-text: #94a3b8;
     }
@@ -34,6 +34,7 @@ $bodyClass = 'voting-mode';
         margin: 0 auto;
         padding: 0 12px 80px;
         color: var(--vote-text);
+        font-family: "Source Sans 3", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     }
 
     /* ---- Üst başlık şeridi ---- */
@@ -357,7 +358,7 @@ $bodyClass = 'voting-mode';
 <!-- Üst başlık -->
 <div class="vote-header">
     <span class="vote-header__title"><?= e($election['title']) ?></span>
-    <span class="vote-header__timer" id="countdown">--:--</span>
+    <span class="vote-header__timer" id="countdown" aria-live="polite" aria-label="Kalan süre">--:--</span>
 </div>
 
 <div class="vote-wrapper">

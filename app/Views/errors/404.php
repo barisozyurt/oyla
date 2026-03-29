@@ -30,7 +30,7 @@
             font-size: 7rem;
             font-weight: 800;
             line-height: 1;
-            color: #0d6efd;
+            color: #1D9E75;
             opacity: 0.15;
         }
     </style>

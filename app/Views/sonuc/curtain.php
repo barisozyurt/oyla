@@ -109,10 +109,10 @@ $participationPct = $totalMembers > 0
                 $isYedek   = !$isWinner && ($rank + 1) <= ($quota + $yedekQuota);
 
                 if ($isWinner) {
-                    $barColor = '#22c55e';
+                    $barColor = '#1D9E75';
                     $nameColor = '#86efac';
                 } elseif ($isYedek) {
-                    $barColor = '#38bdf8';
+                    $barColor = '#5cbf96';
                     $nameColor = '#bae6fd';
                 } else {
                     $barColor = '#6b7280';
@@ -122,7 +122,7 @@ $participationPct = $totalMembers > 0
             <div class="col-12 col-xl-6">
                 <div class="d-flex align-items-center gap-3 rounded-3 px-3 py-2
                      <?= $isClosed && $isWinner ? 'winner-curtain-row' : '' ?>"
-                     style="<?= $isClosed && $isWinner ? "background: rgba(34,197,94,.12); border: 2px solid rgba(34,197,94,.4);" : "background: rgba(255,255,255,.05);" ?>">
+                     style="<?= $isClosed && $isWinner ? "background: rgba(29,158,117,.12); border: 2px solid rgba(29,158,117,.4);" : "background: rgba(255,255,255,.05);" ?>">
 
                     <!-- Sıra -->
                     <span style="color: rgba(255,255,255,.4); font-size:.9rem; min-width:1.4rem;"><?= $rank + 1 ?>.</span>
@@ -130,7 +130,7 @@ $participationPct = $totalMembers > 0
                     <!-- Avatar -->
                     <?php if (!empty($candidate['photo_path']) && file_exists(PUBLIC_PATH . $candidate['photo_path'])): ?>
                     <img src="<?= e($candidate['photo_path']) ?>" class="rounded-circle flex-shrink-0"
-                         width="44" height="44" alt="" loading="lazy" style="object-fit:cover; border: 2px solid <?= $isWinner ? '#22c55e' : 'rgba(255,255,255,.15)' ?>;">
+                         width="44" height="44" alt="" loading="lazy" style="object-fit:cover; border: 2px solid <?= $isWinner ? '#1D9E75' : 'rgba(255,255,255,.15)' ?>;">
                     <?php else: ?>
                     <svg viewBox="0 0 44 44" width="44" height="44" class="rounded-circle flex-shrink-0">
                         <rect width="44" height="44" rx="22" fill="rgba(255,255,255,.08)"/>
@@ -190,7 +190,7 @@ $participationPct = $totalMembers > 0
             <div style="flex: 1; min-width: 200px; max-width: 400px;">
                 <div class="rounded-pill overflow-hidden" style="height:10px; background: rgba(255,255,255,.12);">
                     <div id="curtain-participation-bar" class="rounded-pill"
-                         style="height:100%; width:<?= $participationPct ?>%; background: #22c55e; transition: width .6s ease;">
+                         style="height:100%; width:<?= $participationPct ?>%; background: #1D9E75; transition: width .6s ease;">
                     </div>
                 </div>
             </div>

@@ -1,38 +1,67 @@
 /* ============================================================
-   Oyla — Custom Application Styles
-   Bootstrap 5.3 CDN is loaded separately; this file overrides
-   and extends it with project-specific design tokens.
+   Oyla — Application Stylesheet
+   Turkish association election management system.
+   Built on Bootstrap 5.3 (loaded via CDN). This file provides
+   design tokens, overrides, and all custom components.
    ============================================================ */
 
 /* ============================================================
+   0. Web Fonts
+   Source Sans 3 — professional, full Turkish glyph support.
+   JetBrains Mono — receipt codes, hashes, technical values.
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap');
+
+
+/* ============================================================
    1. CSS Custom Properties (Design Tokens)
+   ALL colors in the project flow from these variables.
    ============================================================ */
 :root {
-    --oyla-primary:        #1D9E75;
-    --oyla-primary-dark:   #177a5b;
-    --oyla-primary-light:  #e8f5ef;
-    --oyla-secondary:      #2c3e50;
-    --oyla-waiting:        #6c757d;
-    --oyla-signed:         #ffc107;
-    --oyla-done:           #28a745;
-    --oyla-danger:         #dc3545;
-    --oyla-info:           #0dcaf0;
-    --oyla-yedek:          #0d6efd;
+    /* Brand — single primary hue */
+    --oyla-primary:          #1D9E75;
+    --oyla-primary-dark:     #177a5b;
+    --oyla-primary-light:    #e8f5ef;
+    --oyla-primary-50:       #f0faf5;
+    --oyla-primary-rgb:      29, 158, 117;
+
+    /* Neutrals */
+    --oyla-secondary:        #2c3e50;
+    --oyla-secondary-light:  #34495e;
+    --oyla-body:             #1a1a2e;
+    --oyla-muted:            #64748b;
+    --oyla-border:           #e2e8f0;
+    --oyla-surface:          #ffffff;
+    --oyla-page-bg:          #f5f7fa;
+
+    /* Semantic — status triad */
+    --oyla-waiting:          #64748b;
+    --oyla-signed:           #e6a817;
+    --oyla-done:             #1D9E75;
+
+    /* Accent & feedback */
+    --oyla-accent:           #d4a847;
+    --oyla-danger:           #c0392b;
+    --oyla-danger-light:     #fdf0ef;
+    --oyla-info:             #1D9E75;
 
     /* Spacing */
-    --oyla-radius:         0.5rem;
-    --oyla-radius-lg:      0.75rem;
-    --oyla-shadow:         0 2px 8px rgba(0, 0, 0, 0.08);
-    --oyla-shadow-lg:      0 4px 16px rgba(0, 0, 0, 0.12);
+    --oyla-radius:           0.5rem;
+    --oyla-radius-lg:        0.75rem;
+    --oyla-radius-pill:      50rem;
+    --oyla-shadow:           0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+    --oyla-shadow-md:        0 4px 12px rgba(0, 0, 0, 0.08);
+    --oyla-shadow-lg:        0 8px 24px rgba(0, 0, 0, 0.1);
 
     /* Typography */
-    --oyla-font-base:      system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    --oyla-font-size-base: 1rem;          /* 16px */
-    --oyla-line-height:    1.6;
+    --oyla-font-base:        "Source Sans 3", "Source Sans Pro", -apple-system, sans-serif;
+    --oyla-font-mono:        "JetBrains Mono", "Fira Code", "Consolas", monospace;
+    --oyla-font-size-base:   1rem;
+    --oyla-line-height:      1.6;
 
     /* Transitions */
-    --oyla-transition:     0.2s ease-in-out;
-    --oyla-transition-bar: 0.6s ease-out;
+    --oyla-transition:       0.2s ease-in-out;
+    --oyla-transition-bar:   0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 
@@ -54,17 +83,17 @@ body {
     font-family: var(--oyla-font-base);
     font-size: var(--oyla-font-size-base);
     line-height: var(--oyla-line-height);
-    color: #212529;
-    background-color: #f8f9fa;
+    color: var(--oyla-body);
+    background-color: var(--oyla-page-bg);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Turkish characters render correctly at all weights */
 h1, h2, h3, h4, h5, h6 {
     font-family: var(--oyla-font-base);
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: -0.01em;
+    color: var(--oyla-secondary);
 }
 
 a {
@@ -78,32 +107,44 @@ a:hover {
     text-decoration: underline;
 }
 
-/* Focus rings */
+/* Accessible focus rings */
 :focus-visible {
     outline: 3px solid var(--oyla-primary);
     outline-offset: 2px;
 }
 
+::selection {
+    background-color: var(--oyla-primary);
+    color: var(--oyla-surface);
+}
+
 
 /* ============================================================
    3. Bootstrap Overrides
+   Remap Bootstrap's palette to Oyla tokens.
    ============================================================ */
 
-/* Primary button */
-.btn-primary {
-    --bs-btn-bg:               var(--oyla-primary);
-    --bs-btn-border-color:     var(--oyla-primary);
-    --bs-btn-hover-bg:         var(--oyla-primary-dark);
-    --bs-btn-hover-border-color: var(--oyla-primary-dark);
-    --bs-btn-active-bg:        var(--oyla-primary-dark);
-    --bs-btn-active-border-color: var(--oyla-primary-dark);
-    --bs-btn-focus-shadow-rgb: 29, 158, 117;
-    --bs-btn-color:            #fff;
-    --bs-btn-hover-color:      #fff;
-    --bs-btn-active-color:     #fff;
+/* --- Buttons --- */
+.btn {
+    font-family: var(--oyla-font-base);
+    font-weight: 600;
+    border-radius: var(--oyla-radius);
+    transition: all var(--oyla-transition);
 }
 
-/* Outline primary button */
+.btn-primary {
+    --bs-btn-bg:                 var(--oyla-primary);
+    --bs-btn-border-color:       var(--oyla-primary);
+    --bs-btn-hover-bg:           var(--oyla-primary-dark);
+    --bs-btn-hover-border-color: var(--oyla-primary-dark);
+    --bs-btn-active-bg:          var(--oyla-primary-dark);
+    --bs-btn-active-border-color:var(--oyla-primary-dark);
+    --bs-btn-focus-shadow-rgb:   var(--oyla-primary-rgb);
+    --bs-btn-color:              #fff;
+    --bs-btn-hover-color:        #fff;
+    --bs-btn-active-color:       #fff;
+}
+
 .btn-outline-primary {
     --bs-btn-color:              var(--oyla-primary);
     --bs-btn-border-color:       var(--oyla-primary);
@@ -112,13 +153,55 @@ a:hover {
     --bs-btn-hover-color:        #fff;
     --bs-btn-active-bg:          var(--oyla-primary-dark);
     --bs-btn-active-border-color:var(--oyla-primary-dark);
-    --bs-btn-focus-shadow-rgb:   29, 158, 117;
+    --bs-btn-focus-shadow-rgb:   var(--oyla-primary-rgb);
 }
 
-/* Navbar */
+.btn-success {
+    --bs-btn-bg:                 var(--oyla-primary);
+    --bs-btn-border-color:       var(--oyla-primary);
+    --bs-btn-hover-bg:           var(--oyla-primary-dark);
+    --bs-btn-hover-border-color: var(--oyla-primary-dark);
+    --bs-btn-focus-shadow-rgb:   var(--oyla-primary-rgb);
+}
+
+.btn-danger {
+    --bs-btn-bg:                 var(--oyla-danger);
+    --bs-btn-border-color:       var(--oyla-danger);
+    --bs-btn-hover-bg:           #a93226;
+    --bs-btn-hover-border-color: #a93226;
+}
+
+.btn-outline-danger {
+    --bs-btn-color:              var(--oyla-danger);
+    --bs-btn-border-color:       var(--oyla-danger);
+    --bs-btn-hover-bg:           var(--oyla-danger);
+    --bs-btn-hover-color:        #fff;
+}
+
+.btn-secondary {
+    --bs-btn-bg:                 var(--oyla-secondary);
+    --bs-btn-border-color:       var(--oyla-secondary);
+    --bs-btn-hover-bg:           var(--oyla-secondary-light);
+    --bs-btn-hover-border-color: var(--oyla-secondary-light);
+}
+
+.btn-warning {
+    --bs-btn-bg:                 var(--oyla-signed);
+    --bs-btn-border-color:       var(--oyla-signed);
+    --bs-btn-color:              #fff;
+    --bs-btn-hover-color:        #fff;
+}
+
+.btn-lg {
+    border-radius: var(--oyla-radius-lg);
+    font-size: 1.05rem;
+    padding: 0.65rem 1.5rem;
+}
+
+/* --- Navbar --- */
 .navbar {
     background-color: var(--oyla-primary) !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
     padding-top: 0.65rem;
     padding-bottom: 0.65rem;
 }
@@ -155,49 +238,60 @@ a:hover {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255%2c255%2c255%2c0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
 
-/* Card defaults */
+/* --- Cards --- */
 .card {
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--oyla-border);
     border-radius: var(--oyla-radius-lg);
     box-shadow: var(--oyla-shadow);
+    background-color: var(--oyla-surface);
 }
 
 .card-header {
-    background-color: #fff;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    background-color: var(--oyla-surface);
+    border-bottom: 1px solid var(--oyla-border);
     font-weight: 600;
 }
 
-/* Form controls */
+/* --- Forms --- */
 .form-control:focus,
 .form-select:focus {
     border-color: var(--oyla-primary);
-    box-shadow: 0 0 0 0.2rem rgba(29, 158, 117, 0.2);
+    box-shadow: 0 0 0 0.2rem rgba(var(--oyla-primary-rgb), 0.2);
 }
 
-/* Progress bar */
+/* --- Progress bars --- */
 .progress-bar {
     background-color: var(--oyla-primary);
 }
 
-/* Badges */
+/* --- Badges --- */
 .badge.bg-primary {
     background-color: var(--oyla-primary) !important;
 }
 
-/* Alert success */
+.badge.bg-success {
+    background-color: var(--oyla-primary) !important;
+}
+
+/* --- Alerts --- */
 .alert-success {
-    --bs-alert-color:      #0f5132;
-    --bs-alert-bg:         var(--oyla-primary-light);
-    --bs-alert-border-color: #badbcc;
+    --bs-alert-color:         var(--oyla-primary-dark);
+    --bs-alert-bg:            var(--oyla-primary-light);
+    --bs-alert-border-color:  #b8e6d4;
 }
 
-/* Table hover */
+.alert-danger {
+    --bs-alert-color:         var(--oyla-danger);
+    --bs-alert-bg:            var(--oyla-danger-light);
+    --bs-alert-border-color:  #f0c6c1;
+}
+
+/* --- Tables --- */
 .table-hover > tbody > tr:hover > * {
-    background-color: var(--oyla-primary-light);
+    background-color: var(--oyla-primary-50);
 }
 
-/* Pagination */
+/* --- Pagination --- */
 .page-link {
     color: var(--oyla-primary);
 }
@@ -207,25 +301,33 @@ a:hover {
     border-color: var(--oyla-primary);
 }
 
+/* --- Dropdown --- */
+.dropdown-item.active,
+.dropdown-item:active {
+    background-color: var(--oyla-primary);
+}
+
+
 /* ============================================================
    4. Typography Utilities
    ============================================================ */
 
-/* Large stat display used in divan / admin panels */
+/* Large stat number for divan/admin */
 .display-stat {
     font-size: clamp(2.5rem, 6vw, 4rem);
     font-weight: 700;
     line-height: 1;
     letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
 }
 
 /* Salon-readable subtitle */
 .display-stat-label {
-    font-size: clamp(0.85rem, 2vw, 1rem);
-    font-weight: 500;
+    font-size: clamp(0.8rem, 2vw, 0.95rem);
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #6c757d;
+    letter-spacing: 0.06em;
+    color: var(--oyla-muted);
 }
 
 /* Multi-line clamp */
@@ -243,15 +345,16 @@ a:hover {
     overflow: hidden;
 }
 
-/* Oyla brand color helpers */
-.text-oyla   { color: var(--oyla-primary) !important; }
-.bg-oyla     { background-color: var(--oyla-primary) !important; }
-.bg-oyla-light { background-color: var(--oyla-primary-light) !important; }
-.border-oyla { border-color: var(--oyla-primary) !important; }
+/* Brand color helpers */
+.text-oyla      { color: var(--oyla-primary) !important; }
+.bg-oyla        { background-color: var(--oyla-primary) !important; }
+.bg-oyla-light  { background-color: var(--oyla-primary-light) !important; }
+.border-oyla    { border-color: var(--oyla-primary) !important; }
 
 
 /* ============================================================
    5. Status Indicators
+   Triad: waiting (slate), signed (gold), done (green).
    ============================================================ */
 
 /* Dot + text badges */
@@ -262,7 +365,7 @@ a:hover {
     align-items: center;
     gap: 0.35em;
     font-size: 0.875rem;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .status-waiting::before,
@@ -276,49 +379,49 @@ a:hover {
     flex-shrink: 0;
 }
 
-.status-waiting { color: var(--oyla-waiting); }
+.status-waiting         { color: var(--oyla-waiting); }
 .status-waiting::before { background-color: var(--oyla-waiting); }
 
-.status-signed { color: #856404; }
-.status-signed::before { background-color: var(--oyla-signed); }
+.status-signed          { color: #92700c; }
+.status-signed::before  { background-color: var(--oyla-signed); }
 
-.status-done { color: #155724; }
-.status-done::before { background-color: var(--oyla-done); }
+.status-done            { color: var(--oyla-primary-dark); }
+.status-done::before    { background-color: var(--oyla-done); }
 
-/* Colored badge pills */
+/* Pill badges */
 .badge-waiting {
-    background-color: #e9ecef;
-    color: #495057;
-    font-weight: 500;
-    border-radius: 50rem;
+    background-color: #f1f5f9;
+    color: var(--oyla-waiting);
+    font-weight: 600;
+    border-radius: var(--oyla-radius-pill);
     padding: 0.35em 0.75em;
 }
 
 .badge-signed {
-    background-color: #fff3cd;
-    color: #856404;
-    font-weight: 500;
-    border-radius: 50rem;
+    background-color: #fef3cd;
+    color: #92700c;
+    font-weight: 600;
+    border-radius: var(--oyla-radius-pill);
     padding: 0.35em 0.75em;
 }
 
 .badge-done {
-    background-color: #d1e7dd;
-    color: #155724;
-    font-weight: 500;
-    border-radius: 50rem;
+    background-color: var(--oyla-primary-light);
+    color: var(--oyla-primary-dark);
+    font-weight: 600;
+    border-radius: var(--oyla-radius-pill);
     padding: 0.35em 0.75em;
 }
 
-/* Unicode status icons */
+/* Unicode status icons (from spec: circle/half/full) */
 .status-icon {
     font-size: 1.1em;
     line-height: 1;
 }
 
-.status-icon-waiting::before { content: '○'; color: var(--oyla-waiting); }
-.status-icon-signed::before  { content: '◑'; color: var(--oyla-signed); }
-.status-icon-done::before    { content: '●'; color: var(--oyla-done); }
+.status-icon-waiting::before { content: '\25CB'; color: var(--oyla-waiting); }
+.status-icon-signed::before  { content: '\25D1'; color: var(--oyla-signed); }
+.status-icon-done::before    { content: '\25CF'; color: var(--oyla-done); }
 
 
 /* ============================================================
@@ -330,31 +433,20 @@ a:hover {
     display: inline-block;
     object-fit: cover;
     border-radius: 50%;
-    background-color: #dee2e6;
+    background-color: var(--oyla-border);
     flex-shrink: 0;
     vertical-align: middle;
 }
 
-.avatar {
-    width: 40px;
-    height: 40px;
-}
-
-.avatar-sm {
-    width: 32px;
-    height: 32px;
-}
-
-.avatar-lg {
-    width: 64px;
-    height: 64px;
-}
+.avatar    { width: 40px; height: 40px; }
+.avatar-sm { width: 32px; height: 32px; }
+.avatar-lg { width: 64px; height: 64px; }
 
 /* Anonymous SVG placeholder */
 .avatar-anon {
     display: inline-block;
     border-radius: 50%;
-    background-color: #dee2e6;
+    background-color: var(--oyla-border);
     vertical-align: middle;
     overflow: hidden;
     flex-shrink: 0;
@@ -366,7 +458,8 @@ a:hover {
 
 
 /* ============================================================
-   7. Result / Bar Chart (Sonuç Ekranı)
+   7. Result / Bar Chart (Sonuc Ekrani)
+   Winners: gold accent. Yedek: light green. Others: gray.
    ============================================================ */
 .result-list {
     display: flex;
@@ -389,12 +482,8 @@ a:hover {
     flex-shrink: 0;
 }
 
-.result-candidate-info .avatar {
-    flex-shrink: 0;
-}
-
 .result-candidate-name {
-    font-weight: 500;
+    font-weight: 600;
     font-size: 0.9rem;
     line-height: 1.2;
     overflow: hidden;
@@ -405,7 +494,7 @@ a:hover {
 
 .result-bar-wrap {
     flex: 1;
-    background-color: #e9ecef;
+    background-color: #eef2f6;
     border-radius: 4px;
     overflow: hidden;
     height: 28px;
@@ -416,51 +505,73 @@ a:hover {
     height: 100%;
     border-radius: 4px;
     transition: width var(--oyla-transition-bar);
-    width: 0%;   /* animated from JS */
+    width: 0%;
     position: relative;
     display: flex;
     align-items: center;
     padding-left: 0.5rem;
     font-size: 0.8rem;
-    font-weight: 600;
+    font-weight: 700;
     color: #fff;
     min-width: 0;
     overflow: hidden;
 }
 
+/* Winner: green bar with gold accent border */
 .result-bar.winner {
-    background-color: var(--oyla-primary);
-    box-shadow: 0 0 8px rgba(29, 158, 117, 0.45);
+    background: linear-gradient(135deg, var(--oyla-primary), var(--oyla-primary-dark));
+    box-shadow: 0 2px 8px rgba(var(--oyla-primary-rgb), 0.35);
 }
 
+/* Yedek (reserves): lighter green */
 .result-bar.yedek {
-    background-color: var(--oyla-yedek);
+    background-color: #5cbf96;
 }
 
+/* Others: neutral gray */
 .result-bar.other {
-    background-color: #adb5bd;
+    background-color: #b0bec5;
 }
 
-/* Winner frame on close */
+/* Winner row highlight on close */
+.result-row.winner-row {
+    position: relative;
+}
+
 .result-row.winner-row .result-candidate-name {
     color: var(--oyla-primary-dark);
     font-weight: 700;
 }
 
 .result-row.winner-row .result-bar-wrap {
-    border: 2px solid var(--oyla-primary);
+    border: 2px solid var(--oyla-accent);
+    border-radius: 6px;
+}
+
+/* Gold left accent for winners */
+.result-row.winner-row::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 60%;
+    background-color: var(--oyla-accent);
+    border-radius: 2px;
 }
 
 .result-count {
     min-width: 60px;
     text-align: right;
     font-size: 0.9rem;
-    font-weight: 600;
-    color: #495057;
+    font-weight: 700;
+    color: var(--oyla-secondary);
     flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
 }
 
-/* Compact bar for tables */
+/* Compact inline bar for tables */
 .result-bar-inline {
     display: inline-block;
     height: 8px;
@@ -472,7 +583,8 @@ a:hover {
 
 
 /* ============================================================
-   8. Step Wizard (Görevli)
+   8. Step Wizard (Gorevli check-in flow)
+   Connected dots with green progression.
    ============================================================ */
 .step-wizard {
     display: flex;
@@ -500,7 +612,7 @@ a:hover {
     left: 50%;
     width: 100%;
     height: 2px;
-    background-color: #dee2e6;
+    background-color: var(--oyla-border);
     z-index: 0;
 }
 
@@ -512,8 +624,8 @@ a:hover {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background-color: #dee2e6;
-    color: #6c757d;
+    background-color: #f1f5f9;
+    color: var(--oyla-muted);
     font-weight: 700;
     font-size: 0.9rem;
     display: flex;
@@ -521,8 +633,11 @@ a:hover {
     justify-content: center;
     position: relative;
     z-index: 1;
-    border: 2px solid #dee2e6;
-    transition: background-color var(--oyla-transition), border-color var(--oyla-transition);
+    border: 2px solid var(--oyla-border);
+    transition:
+        background-color var(--oyla-transition),
+        border-color var(--oyla-transition),
+        color var(--oyla-transition);
     flex-shrink: 0;
 }
 
@@ -540,7 +655,7 @@ a:hover {
 }
 
 .step-item.completed .step-circle::before {
-    content: '✓';
+    content: '\2713';
     font-size: 1rem;
 }
 
@@ -551,7 +666,7 @@ a:hover {
 .step-label {
     margin-top: 0.4rem;
     font-size: 0.75rem;
-    color: #6c757d;
+    color: var(--oyla-muted);
     line-height: 1.2;
     max-width: 80px;
 }
@@ -567,34 +682,35 @@ a:hover {
 
 
 /* ============================================================
-   9. Perde (Curtain) Mode
+   9. Curtain (Perde) Mode — dark salon display
+   Large text, high contrast, gold accents for winners.
    ============================================================ */
 .curtain-mode {
-    background-color: #0d1117 !important;
-    color: #f0f6fc !important;
+    background-color: #0b1120 !important;
+    color: #edf2f7 !important;
     min-height: 100vh;
 }
 
 .curtain-mode body {
-    background-color: #0d1117;
+    background-color: #0b1120;
 }
 
 .curtain-mode .navbar {
-    background-color: #161b22 !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: #111827 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .curtain-mode .card,
 .curtain-mode .stat-card {
-    background-color: transparent !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
-    color: #f0f6fc !important;
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #edf2f7 !important;
 }
 
 .curtain-mode .card-header {
-    background-color: rgba(255, 255, 255, 0.05) !important;
-    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
-    color: #f0f6fc !important;
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+    color: #edf2f7 !important;
 }
 
 .curtain-mode h1,
@@ -603,63 +719,90 @@ a:hover {
 .curtain-mode h4,
 .curtain-mode h5,
 .curtain-mode h6 {
-    color: #f0f6fc;
+    color: #edf2f7;
 }
 
 .curtain-mode .result-bar-wrap {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(255, 255, 255, 0.08);
+    height: 40px;
+}
+
+.curtain-mode .result-bar {
+    height: 40px;
+    font-size: 0.9rem;
 }
 
 .curtain-mode .result-bar.winner {
-    background-color: #2dbe8c;
-    box-shadow: 0 0 12px rgba(45, 190, 140, 0.5);
+    background: linear-gradient(135deg, var(--oyla-primary), #23b888);
+    box-shadow: 0 0 16px rgba(var(--oyla-primary-rgb), 0.45);
+}
+
+/* Gold frame for winners in curtain mode */
+.curtain-mode .result-row.winner-row .result-bar-wrap {
+    border-color: var(--oyla-accent);
+}
+
+.curtain-mode .result-row.winner-row::before {
+    background-color: var(--oyla-accent);
+    height: 70%;
+    width: 5px;
 }
 
 .curtain-mode .result-bar.yedek {
-    background-color: #4d9fff;
+    background-color: #3ea87d;
 }
 
 .curtain-mode .result-bar.other {
-    background-color: #6c757d;
+    background-color: #475569;
 }
 
 .curtain-mode .result-count {
-    color: #adb5bd;
+    color: #94a3b8;
+    font-size: 1rem;
+    min-width: 70px;
+}
+
+.curtain-mode .result-candidate-info {
+    min-width: 200px;
+    max-width: 260px;
 }
 
 .curtain-mode .result-candidate-name {
-    color: #f0f6fc;
+    color: #edf2f7;
+    font-size: 1rem;
 }
 
 .curtain-mode .display-stat {
-    color: #2dbe8c;
+    color: var(--oyla-primary);
 }
 
 .curtain-mode .display-stat-label {
-    color: rgba(255, 255, 255, 0.55);
+    color: rgba(255, 255, 255, 0.45);
 }
 
 .curtain-mode .text-muted {
-    color: rgba(255, 255, 255, 0.5) !important;
+    color: rgba(255, 255, 255, 0.4) !important;
 }
 
-/* Official results banner */
+/* Official results banner — gold, not green */
 .curtain-mode .official-results-banner {
-    background: linear-gradient(135deg, var(--oyla-primary), var(--oyla-primary-dark));
+    background: linear-gradient(135deg, var(--oyla-accent), #c49730);
     color: #fff;
     font-size: clamp(1.5rem, 4vw, 2.5rem);
     font-weight: 800;
     text-align: center;
     padding: 1rem 2rem;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
     border-radius: var(--oyla-radius);
     margin-bottom: 2rem;
-    box-shadow: 0 4px 24px rgba(29, 158, 117, 0.4);
+    box-shadow: 0 4px 24px rgba(212, 168, 71, 0.35);
 }
 
 /* Participation strip */
 .curtain-participation {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--oyla-radius);
     padding: 1rem 1.5rem;
     display: flex;
@@ -676,46 +819,26 @@ a:hover {
 .curtain-participation .stat-value {
     font-size: 2rem;
     font-weight: 700;
-    color: #2dbe8c;
+    color: var(--oyla-primary);
     line-height: 1;
+    font-variant-numeric: tabular-nums;
 }
 
 .curtain-participation .stat-label {
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.55);
+    color: rgba(255, 255, 255, 0.45);
     margin-top: 0.2rem;
-}
-
-/* Large salon-ready result bars */
-.curtain-mode .result-bar-wrap {
-    height: 40px;
-}
-
-.curtain-mode .result-bar {
-    height: 40px;
-    font-size: 0.9rem;
-}
-
-.curtain-mode .result-candidate-info {
-    min-width: 200px;
-    max-width: 260px;
-}
-
-.curtain-mode .result-candidate-name {
-    font-size: 1rem;
-}
-
-.curtain-mode .result-count {
-    font-size: 1rem;
-    min-width: 70px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 
 /* ============================================================
-   10. Voting Screen (Üye Oylama — Mobile First)
+   10. Voting Screen (Uye Oylama — Mobile First)
+   Green selection state, large touch targets.
    ============================================================ */
 .voting-mode {
-    background-color: #f8f9fa;
+    background-color: var(--oyla-page-bg);
 }
 
 .voting-mode .voting-header {
@@ -740,6 +863,7 @@ a:hover {
     font-size: 0.85rem;
     opacity: 0.9;
     margin-top: 0.2rem;
+    font-family: var(--oyla-font-mono);
 }
 
 /* Ballot section header */
@@ -758,7 +882,7 @@ a:hover {
     color: #fff;
 }
 
-/* Quota progress bar */
+/* Quota progress */
 .quota-bar-wrap {
     margin-top: 0.4rem;
 }
@@ -766,7 +890,7 @@ a:hover {
 .quota-bar-wrap .progress {
     height: 6px;
     border-radius: 3px;
-    background-color: rgba(255, 255, 255, 0.25);
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 .quota-bar-wrap .progress-bar {
@@ -781,14 +905,14 @@ a:hover {
     text-align: right;
 }
 
-/* Candidate card */
+/* Candidate card — green selection, NOT blue */
 .candidate-card {
     display: flex;
     align-items: center;
     gap: 0.75rem;
     padding: 0.85rem 1rem;
-    background-color: #fff;
-    border: 2px solid #dee2e6;
+    background-color: var(--oyla-surface);
+    border: 2px solid var(--oyla-border);
     border-radius: var(--oyla-radius);
     cursor: pointer;
     transition:
@@ -804,17 +928,17 @@ a:hover {
 
 .candidate-card:hover:not(.disabled) {
     border-color: var(--oyla-primary);
-    background-color: var(--oyla-primary-light);
+    background-color: var(--oyla-primary-50);
 }
 
 .candidate-card.selected {
     border-color: var(--oyla-primary);
     background-color: var(--oyla-primary-light);
-    box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.2);
+    box-shadow: 0 0 0 3px rgba(var(--oyla-primary-rgb), 0.15);
 }
 
 .candidate-card.selected::after {
-    content: '✓';
+    content: '\2713';
     position: absolute;
     right: 0.85rem;
     top: 50%;
@@ -834,10 +958,10 @@ a:hover {
 }
 
 .candidate-card.disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
     pointer-events: none;
-    background-color: #f8f9fa;
+    background-color: #f8fafc;
 }
 
 .candidate-card .candidate-info {
@@ -848,7 +972,7 @@ a:hover {
 .candidate-card .candidate-name {
     font-weight: 600;
     font-size: 0.95rem;
-    color: #212529;
+    color: var(--oyla-body);
     line-height: 1.2;
 }
 
@@ -858,7 +982,7 @@ a:hover {
 
 .candidate-card .candidate-title {
     font-size: 0.8rem;
-    color: #6c757d;
+    color: var(--oyla-muted);
     margin-top: 0.15rem;
 }
 
@@ -879,7 +1003,7 @@ a:hover {
 
 /* Vote confirmation box */
 .vote-confirm-box {
-    background-color: #fff;
+    background-color: var(--oyla-surface);
     border: 2px solid var(--oyla-primary);
     border-radius: var(--oyla-radius-lg);
     padding: 1.5rem;
@@ -893,7 +1017,7 @@ a:hover {
     margin-bottom: 1rem;
 }
 
-/* Vote success */
+/* Vote success screen */
 .vote-success-screen {
     text-align: center;
     padding: 3rem 1rem;
@@ -906,9 +1030,9 @@ a:hover {
 }
 
 .vote-success-screen .receipt-code {
-    font-family: monospace;
+    font-family: var(--oyla-font-mono);
     font-size: 1.5rem;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.15em;
     background-color: var(--oyla-primary-light);
     border: 2px solid var(--oyla-primary);
@@ -921,27 +1045,27 @@ a:hover {
 
 /* ============================================================
    11. Stat Cards (Divan / Admin Panels)
+   Clean, large numbers, subtle colored left border.
    ============================================================ */
 .stat-card {
-    background-color: #fff;
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    background-color: var(--oyla-surface);
+    border: 1px solid var(--oyla-border);
+    border-left: 4px solid var(--oyla-primary);
     border-radius: var(--oyla-radius-lg);
-    padding: 1.5rem;
+    padding: 1.25rem 1.5rem;
     box-shadow: var(--oyla-shadow);
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
     transition: box-shadow var(--oyla-transition);
     height: 100%;
 }
 
 .stat-card:hover {
-    box-shadow: var(--oyla-shadow-lg);
+    box-shadow: var(--oyla-shadow-md);
 }
 
 .stat-card .stat-icon {
-    font-size: 2rem;
+    font-size: 1.5rem;
     margin-bottom: 0.5rem;
     color: var(--oyla-primary);
     line-height: 1;
@@ -954,36 +1078,43 @@ a:hover {
     color: var(--oyla-secondary);
     margin-bottom: 0.25rem;
     letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
 }
 
 .stat-card .stat-label {
-    font-size: 0.85rem;
-    color: #6c757d;
-    font-weight: 500;
+    font-size: 0.8rem;
+    color: var(--oyla-muted);
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.05em;
 }
 
 .stat-card .stat-sublabel {
     font-size: 0.75rem;
-    color: #adb5bd;
+    color: #94a3b8;
     margin-top: 0.2rem;
 }
 
-/* Colored variants */
+/* Colored variants — left border + number color */
+.stat-card.stat-success { border-left-color: var(--oyla-done); }
 .stat-card.stat-success .stat-number { color: var(--oyla-done); }
-.stat-card.stat-warning .stat-number { color: #856404; }
-.stat-card.stat-danger  .stat-number { color: var(--oyla-danger); }
-.stat-card.stat-primary .stat-number { color: var(--oyla-primary); }
+.stat-card.stat-success .stat-icon   { color: var(--oyla-done); }
 
-.stat-card.stat-success .stat-icon { color: var(--oyla-done); }
-.stat-card.stat-warning .stat-icon { color: var(--oyla-signed); }
-.stat-card.stat-danger  .stat-icon { color: var(--oyla-danger); }
+.stat-card.stat-warning { border-left-color: var(--oyla-signed); }
+.stat-card.stat-warning .stat-number { color: #92700c; }
+.stat-card.stat-warning .stat-icon   { color: var(--oyla-signed); }
+
+.stat-card.stat-danger  { border-left-color: var(--oyla-danger); }
+.stat-card.stat-danger  .stat-number { color: var(--oyla-danger); }
+.stat-card.stat-danger  .stat-icon   { color: var(--oyla-danger); }
+
+.stat-card.stat-primary { border-left-color: var(--oyla-primary); }
+.stat-card.stat-primary .stat-number { color: var(--oyla-primary); }
 
 /* Action card */
 .action-card {
-    background-color: #fff;
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    background-color: var(--oyla-surface);
+    border: 1px solid var(--oyla-border);
     border-radius: var(--oyla-radius-lg);
     padding: 1.25rem;
     box-shadow: var(--oyla-shadow);
@@ -999,7 +1130,7 @@ a:hover {
 
 .action-card:hover {
     transform: translateY(-2px);
-    box-shadow: var(--oyla-shadow-lg);
+    box-shadow: var(--oyla-shadow-md);
     border-color: var(--oyla-primary);
     color: inherit;
     text-decoration: none;
@@ -1018,12 +1149,12 @@ a:hover {
 .action-card .action-title {
     font-weight: 600;
     font-size: 0.95rem;
-    color: #212529;
+    color: var(--oyla-body);
 }
 
 .action-card .action-desc {
     font-size: 0.8rem;
-    color: #6c757d;
+    color: var(--oyla-muted);
     margin-top: 0.2rem;
 }
 
@@ -1038,17 +1169,10 @@ a:hover {
 }
 
 @keyframes flashIn {
-    from {
-        opacity: 0;
-        transform: translateY(-8px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Auto-dismiss handled by JS but this provides visual cue */
 .flash-message[data-auto-dismiss] {
     position: relative;
     overflow: hidden;
@@ -1072,19 +1196,19 @@ a:hover {
 
 
 /* ============================================================
-   13. Hazirun / Member List Table (Görevli)
+   13. Hazirun / Member List Table (Gorevli)
    ============================================================ */
 .member-row {
     transition: background-color var(--oyla-transition);
 }
 
 .member-row:hover {
-    background-color: var(--oyla-primary-light);
+    background-color: var(--oyla-primary-50);
 }
 
-.member-row.row-waiting  { border-left: 3px solid var(--oyla-waiting); }
-.member-row.row-signed   { border-left: 3px solid var(--oyla-signed); }
-.member-row.row-done     { border-left: 3px solid var(--oyla-done); }
+.member-row.row-waiting { border-left: 3px solid var(--oyla-waiting); }
+.member-row.row-signed  { border-left: 3px solid var(--oyla-signed); }
+.member-row.row-done    { border-left: 3px solid var(--oyla-done); }
 
 /* Filter tabs */
 .status-filter-tabs {
@@ -1095,14 +1219,14 @@ a:hover {
 }
 
 .status-filter-tab {
-    padding: 0.3rem 0.8rem;
-    border-radius: 50rem;
-    border: 1px solid #dee2e6;
-    background-color: #fff;
+    padding: 0.35rem 0.85rem;
+    border-radius: var(--oyla-radius-pill);
+    border: 1px solid var(--oyla-border);
+    background-color: var(--oyla-surface);
     cursor: pointer;
     font-size: 0.85rem;
-    font-weight: 500;
-    color: #495057;
+    font-weight: 600;
+    color: var(--oyla-muted);
     transition: all var(--oyla-transition);
     user-select: none;
 }
@@ -1120,12 +1244,12 @@ a:hover {
 
 .status-filter-tab .tab-count {
     display: inline-block;
-    background-color: rgba(0, 0, 0, 0.1);
-    border-radius: 50rem;
+    background-color: rgba(0, 0, 0, 0.08);
+    border-radius: var(--oyla-radius-pill);
     padding: 0 0.45em;
     font-size: 0.8em;
     margin-left: 0.3em;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .status-filter-tab.active .tab-count {
@@ -1134,7 +1258,7 @@ a:hover {
 
 
 /* ============================================================
-   14. Divan Panel Specific
+   14. Divan Panel
    ============================================================ */
 .election-status-badge {
     display: inline-flex;
@@ -1145,13 +1269,13 @@ a:hover {
     text-transform: uppercase;
     letter-spacing: 0.06em;
     padding: 0.4em 1em;
-    border-radius: 50rem;
+    border-radius: var(--oyla-radius-pill);
 }
 
-.election-status-badge.status-draft   { background: #e9ecef; color: #495057; }
-.election-status-badge.status-test    { background: #fff3cd; color: #856404; }
-.election-status-badge.status-open    { background: #d1e7dd; color: #0a3622; }
-.election-status-badge.status-closed  { background: #f8d7da; color: #58151c; }
+.election-status-badge.status-draft  { background: #f1f5f9; color: var(--oyla-waiting); }
+.election-status-badge.status-test   { background: #fef3cd; color: #92700c; }
+.election-status-badge.status-open   { background: var(--oyla-primary-light); color: var(--oyla-primary-dark); }
+.election-status-badge.status-closed { background: var(--oyla-danger-light); color: var(--oyla-danger); }
 
 .election-status-badge.status-open::before {
     content: '';
@@ -1164,14 +1288,14 @@ a:hover {
 }
 
 @keyframes pulse {
-    0%   { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.5); }
-    70%  { box-shadow: 0 0 0 6px rgba(40, 167, 69, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+    0%   { box-shadow: 0 0 0 0 rgba(var(--oyla-primary-rgb), 0.5); }
+    70%  { box-shadow: 0 0 0 6px rgba(var(--oyla-primary-rgb), 0); }
+    100% { box-shadow: 0 0 0 0 rgba(var(--oyla-primary-rgb), 0); }
 }
 
 /* Participation progress */
 .participation-bar-wrap {
-    background-color: #e9ecef;
+    background-color: #eef2f6;
     border-radius: 6px;
     overflow: hidden;
     height: 14px;
@@ -1192,7 +1316,7 @@ a:hover {
     background: linear-gradient(
         90deg,
         transparent 0%,
-        rgba(255, 255, 255, 0.25) 50%,
+        rgba(255, 255, 255, 0.2) 50%,
         transparent 100%
     );
     animation: shimmer 2s infinite;
@@ -1214,7 +1338,7 @@ a:hover {
 }
 
 .admin-sidebar .nav-link {
-    color: rgba(255, 255, 255, 0.75);
+    color: rgba(255, 255, 255, 0.7);
     padding: 0.6rem 1.25rem;
     border-left: 3px solid transparent;
     border-radius: 0;
@@ -1224,13 +1348,13 @@ a:hover {
 
 .admin-sidebar .nav-link:hover {
     color: #fff;
-    background-color: rgba(255, 255, 255, 0.08);
-    border-left-color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(255, 255, 255, 0.06);
+    border-left-color: rgba(255, 255, 255, 0.25);
 }
 
 .admin-sidebar .nav-link.active {
     color: #fff;
-    background-color: rgba(29, 158, 117, 0.2);
+    background-color: rgba(var(--oyla-primary-rgb), 0.15);
     border-left-color: var(--oyla-primary);
     font-weight: 600;
 }
@@ -1241,7 +1365,7 @@ a:hover {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: rgba(255, 255, 255, 0.35);
+    color: rgba(255, 255, 255, 0.3);
 }
 
 /* Activity log */
@@ -1249,7 +1373,7 @@ a:hover {
     display: flex;
     gap: 0.75rem;
     padding: 0.6rem 0;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--oyla-border);
     font-size: 0.875rem;
 }
 
@@ -1258,10 +1382,10 @@ a:hover {
 }
 
 .activity-log-entry .log-time {
-    color: #adb5bd;
+    color: #94a3b8;
     white-space: nowrap;
     flex-shrink: 0;
-    font-family: monospace;
+    font-family: var(--oyla-font-mono);
     font-size: 0.8rem;
 }
 
@@ -1272,7 +1396,7 @@ a:hover {
 }
 
 .activity-log-entry .log-desc {
-    color: #495057;
+    color: var(--oyla-muted);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1284,12 +1408,12 @@ a:hover {
     align-items: center;
     gap: 0.4em;
     font-size: 0.85rem;
-    font-weight: 500;
+    font-weight: 600;
 }
 
-.health-indicator.ok     { color: var(--oyla-done); }
-.health-indicator.warn   { color: #856404; }
-.health-indicator.error  { color: var(--oyla-danger); }
+.health-indicator.ok    { color: var(--oyla-done); }
+.health-indicator.warn  { color: #92700c; }
+.health-indicator.error { color: var(--oyla-danger); }
 
 .health-indicator::before {
     content: '';
@@ -1311,15 +1435,15 @@ a:hover {
 .test-mode-banner {
     background: repeating-linear-gradient(
         -45deg,
-        #fff3cd,
-        #fff3cd 10px,
+        #fef3cd,
+        #fef3cd 10px,
         #fff8e1 10px,
         #fff8e1 20px
     );
     border: 2px solid var(--oyla-signed);
     border-radius: var(--oyla-radius);
     padding: 0.75rem 1rem;
-    color: #856404;
+    color: #92700c;
     font-weight: 600;
     font-size: 0.9rem;
     display: flex;
@@ -1329,8 +1453,8 @@ a:hover {
 }
 
 .test-step {
-    background-color: #fff;
-    border: 1px solid #dee2e6;
+    background-color: var(--oyla-surface);
+    border: 1px solid var(--oyla-border);
     border-radius: var(--oyla-radius);
     padding: 1rem;
     margin-bottom: 0.5rem;
@@ -1339,17 +1463,17 @@ a:hover {
 
 .test-step.step-active {
     border-color: var(--oyla-primary);
-    background-color: var(--oyla-primary-light);
+    background-color: var(--oyla-primary-50);
 }
 
 .test-step.step-done {
     border-color: var(--oyla-done);
-    background-color: #f0fff4;
+    background-color: var(--oyla-primary-light);
 }
 
 .test-step.step-failed {
     border-color: var(--oyla-danger);
-    background-color: #fff5f5;
+    background-color: var(--oyla-danger-light);
 }
 
 .test-check-list {
@@ -1364,7 +1488,7 @@ a:hover {
     gap: 0.5rem;
     padding: 0.4rem 0;
     font-size: 0.875rem;
-    border-bottom: 1px solid rgba(0,0,0,0.04);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .test-check-item:last-child {
@@ -1383,10 +1507,10 @@ a:hover {
     flex-shrink: 0;
 }
 
-.test-check-item.pending  .check-icon { background: #e9ecef; color: #6c757d; }
-.test-check-item.running  .check-icon { background: #cff4fc; color: #055160; }
-.test-check-item.passed   .check-icon { background: #d1e7dd; color: #0a3622; }
-.test-check-item.failed   .check-icon { background: #f8d7da; color: #58151c; }
+.test-check-item.pending .check-icon  { background: #f1f5f9; color: var(--oyla-waiting); }
+.test-check-item.running .check-icon  { background: var(--oyla-primary-light); color: var(--oyla-primary-dark); }
+.test-check-item.passed  .check-icon  { background: var(--oyla-primary-light); color: var(--oyla-primary-dark); }
+.test-check-item.failed  .check-icon  { background: var(--oyla-danger-light); color: var(--oyla-danger); }
 
 
 /* ============================================================
@@ -1419,7 +1543,7 @@ a:hover {
     to   { opacity: 1; transform: translateX(0); }
 }
 
-/* Spinner for loading states */
+/* Spinner */
 .oyla-spinner {
     display: inline-block;
     width: 1.5rem;
@@ -1452,17 +1576,40 @@ a:hover {
     vertical-align: middle;
 }
 
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    html {
+        scroll-behavior: auto;
+    }
+
+    .result-bar {
+        transition: none !important;
+    }
+
+    .participation-bar {
+        transition: none !important;
+    }
+}
+
 
 /* ============================================================
    18. Utility Classes
    ============================================================ */
-.cursor-pointer { cursor: pointer; }
-.cursor-default { cursor: default; }
+.cursor-pointer  { cursor: pointer; }
+.cursor-default  { cursor: default; }
 .user-select-none { user-select: none; }
 
-/* Monospace for codes, hashes */
+/* Monospace for codes, hashes, receipts */
 .font-mono {
-    font-family: "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
+    font-family: var(--oyla-font-mono);
 }
 
 /* Overflow scrollable table wrapper */
@@ -1475,9 +1622,9 @@ a:hover {
 .table-sticky-header thead th {
     position: sticky;
     top: 0;
-    background-color: #fff;
+    background-color: var(--oyla-surface);
     z-index: 2;
-    box-shadow: 0 1px 0 #dee2e6;
+    box-shadow: 0 1px 0 var(--oyla-border);
 }
 
 /* Page section header */
@@ -1530,9 +1677,13 @@ a:hover {
         flex-direction: column;
         align-items: flex-start;
     }
+
+    .stat-card {
+        padding: 1rem;
+    }
 }
 
-/* Medium (tablet) — 576–991px */
+/* Medium (tablet) — 576-991px */
 @media (min-width: 576px) and (max-width: 991.98px) {
     .result-candidate-info {
         min-width: 150px;
@@ -1540,7 +1691,7 @@ a:hover {
     }
 }
 
-/* Large (desktop+) — 992px+ */
+/* Large (desktop) — 992px+ */
 @media (min-width: 992px) {
     body { font-size: 1rem; }
 
@@ -1560,19 +1711,44 @@ a:hover {
         min-width: 260px;
         max-width: 320px;
     }
-    .curtain-mode .result-candidate-name { font-size: 1.1rem; }
+    .curtain-mode .result-candidate-name { font-size: 1.15rem; }
     .curtain-mode .result-count { font-size: 1.1rem; min-width: 80px; }
-
     .curtain-participation .stat-value { font-size: 2.5rem; }
 }
 
 
 /* ============================================================
-   20. Print Styles
+   20. High Contrast Support
+   ============================================================ */
+@media (forced-colors: active) {
+    .candidate-card.selected {
+        outline: 3px solid CanvasText;
+    }
+
+    .result-bar {
+        border: 1px solid CanvasText;
+    }
+
+    .step-circle {
+        border: 2px solid CanvasText;
+    }
+
+    .status-waiting::before,
+    .status-signed::before,
+    .status-done::before {
+        forced-color-adjust: none;
+    }
+}
+
+
+/* ============================================================
+   21. Print Styles
+   Clean output for tutanak (official minutes) printing.
    ============================================================ */
 @media print {
     body {
-        font-size: 12pt;
+        font-family: var(--oyla-font-base);
+        font-size: 11pt;
         background-color: #fff !important;
         color: #000 !important;
     }
@@ -1599,7 +1775,10 @@ a:hover {
         color: #000 !important;
     }
 
-    a { color: #000 !important; text-decoration: none !important; }
+    a {
+        color: #000 !important;
+        text-decoration: none !important;
+    }
 
     .result-bar-wrap {
         border: 1px solid #ccc;
@@ -1616,12 +1795,13 @@ a:hover {
         box-shadow: none !important;
     }
 
-    .container, .container-fluid {
+    .container,
+    .container-fluid {
         max-width: 100% !important;
         padding: 0 !important;
     }
 
-    /* PDF tutanak specific */
+    /* Tutanak (official minutes) */
     .tutanak-title {
         font-size: 16pt;
         font-weight: 700;
