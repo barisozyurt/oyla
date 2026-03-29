@@ -1,6 +1,10 @@
-# Oyla 🗳️
+<p align="center">
+  <img src="assets/img/logo.svg" alt="Oyla" width="200">
+</p>
 
-**Türk dernekleri için güvenli, şeffaf ve kriptografik doğrulamalı dijital seçim yönetim sistemi.**
+<h1 align="center">Oyla</h1>
+
+<p align="center"><strong>Türk dernekleri için güvenli, şeffaf ve kriptografik doğrulamalı dijital seçim yönetim sistemi.</strong></p>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![PHP](https://img.shields.io/badge/PHP-8.x-blue.svg)](https://www.php.net/)
