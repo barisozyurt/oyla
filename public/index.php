@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
-// Oyla - Dijital Seçim Yönetim Sistemi
-echo '<h1>Oyla çalışıyor</h1>';
-echo '<p>PHP ' . phpversion() . '</p>';
+define('BASE_PATH', dirname(__DIR__));
+define('PUBLIC_PATH', __DIR__);
+
+require BASE_PATH . '/vendor/autoload.php';
+
+use App\Core\App;
+
+App::boot();
