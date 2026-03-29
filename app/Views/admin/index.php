@@ -194,7 +194,7 @@ $statusMap = [
     <div class="col-6 col-md-4 col-xl-3">
         <a href="/divan" class="card border-0 shadow-sm h-100 text-decoration-none text-body quick-link-card">
             <div class="card-body text-center py-4">
-                <i class="bi bi-person-badge fs-2 text-purple mb-2 d-block" style="color:#6f42c1!important"></i>
+                <i class="bi bi-person-badge fs-2 mb-2 d-block" style="color: var(--oyla-secondary);"></i>
                 <div class="fw-semibold">Divan Paneli</div>
                 <small class="text-muted">Seçim yürütme ekranı</small>
             </div>

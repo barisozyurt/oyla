@@ -7,6 +7,13 @@
     <meta name="description" content="Oyla — Dijital Seçim Yönetim Sistemi">
     <title><?= e($pageTitle ?? 'Giriş') ?> &mdash; Oyla</title>
 
+    <!-- Google Fonts: Source Sans 3 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap"
+    >
     <!-- Bootstrap 5.3 -->
     <link
         rel="stylesheet"
@@ -21,39 +28,10 @@
     >
     <!-- Uygulama stilleri -->
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
-
-    <style>
-        body {
-            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
-            min-height: 100vh;
-        }
-        .auth-card {
-            border: none;
-            border-radius: 1rem;
-            box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.2);
-        }
-        .auth-logo {
-            width: 56px;
-            height: 56px;
-        }
-        .auth-logo-fallback {
-            width: 56px;
-            height: 56px;
-            background: #0d6efd;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin: 0 auto;
-        }
-    </style>
 </head>
-<body class="d-flex align-items-center justify-content-center py-5">
+<body class="auth-page d-flex align-items-center justify-content-center py-5">
 
-<div class="w-100" style="max-width: 420px; padding: 0 1rem;">
+<div class="auth-page__container w-100">
 
     <!-- Logo & başlık -->
     <div class="text-center mb-4">
@@ -61,7 +39,7 @@
             src="<?= asset('img/logo.svg') ?>"
             alt="Oyla"
             class="auth-logo mb-3"
-            onerror="this.replaceWith(document.querySelector('.auth-logo-fallback'))"
+            onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
         >
         <div class="auth-logo-fallback" style="display:none">O</div>
         <h1 class="text-white fw-bold fs-3 mb-1">Oyla</h1>

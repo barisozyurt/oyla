@@ -62,7 +62,7 @@ $bodyClass = 'voting-mode';
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        background: #1d4ed8;
+        background: #1D9E75;
         color: #fff;
         border: none;
         border-radius: 8px;

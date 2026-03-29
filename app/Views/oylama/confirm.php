@@ -36,7 +36,7 @@ $bodyClass = 'voting-mode';
     .confirm-heading {
         font-size: 1.5rem;
         font-weight: 800;
-        color: #15803d;
+        color: #1D9E75;
         margin-bottom: 8px;
     }
 
@@ -48,7 +48,7 @@ $bodyClass = 'voting-mode';
 
     .receipt-box {
         background: #f8fafc;
-        border: 2px dashed #16a34a;
+        border: 2px dashed #1D9E75;
         border-radius: 12px;
         padding: 24px 20px;
         margin-bottom: 28px;
@@ -67,7 +67,7 @@ $bodyClass = 'voting-mode';
         font-size: 2.2rem;
         font-weight: 900;
         letter-spacing: .15em;
-        color: #15803d;
+        color: #1D9E75;
         font-variant-numeric: tabular-nums;
         word-break: break-all;
     }
@@ -83,7 +83,7 @@ $bodyClass = 'voting-mode';
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        color: #1d4ed8;
+        color: #1D9E75;
         font-weight: 600;
         font-size: .9rem;
         text-decoration: none;
