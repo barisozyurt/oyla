@@ -8,7 +8,12 @@
       "Bash(php -l /c/Users/BarisOzyurt/Documents/code/oyla/app/Controllers/DivanController.php)",
       "Bash(php -l /c/Users/BarisOzyurt/Documents/code/oyla/app/Views/divan/index.php)",
       "Bash(php -l /c/Users/BarisOzyurt/Documents/code/oyla/public/assets/js/divan.js)",
-      "Bash(grep -n \"csrf_field\\\\|e\\($\" /c/Users/BarisOzyurt/Documents/code/oyla/app/Views/yonetim/index.php)"
+      "Bash(grep -n \"csrf_field\\\\|e\\($\" /c/Users/BarisOzyurt/Documents/code/oyla/app/Views/yonetim/index.php)",
+      "Bash(php -l /c/Users/BarisOzyurt/Documents/code/oyla/app/Controllers/GorevliController.php)",
+      "Bash(php -l /c/Users/BarisOzyurt/Documents/code/oyla/app/Views/gorevli/index.php)",
+      "Bash(php8.2 -l /c/Users/BarisOzyurt/Documents/code/oyla/app/Controllers/GorevliController.php)",
+      "Bash(php8 -l /c/Users/BarisOzyurt/Documents/code/oyla/app/Controllers/GorevliController.php)",
+      "Bash(\"C:/php/php.exe\" -l \"C:/Users/BarisOzyurt/Documents/code/oyla/app/Controllers/GorevliController.php\")"
     ]
   }
 }
