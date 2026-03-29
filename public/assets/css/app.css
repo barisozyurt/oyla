@@ -1,0 +1,1649 @@
+/* ============================================================
+   Oyla — Custom Application Styles
+   Bootstrap 5.3 CDN is loaded separately; this file overrides
+   and extends it with project-specific design tokens.
+   ============================================================ */
+
+/* ============================================================
+   1. CSS Custom Properties (Design Tokens)
+   ============================================================ */
+:root {
+    --oyla-primary:        #1D9E75;
+    --oyla-primary-dark:   #177a5b;
+    --oyla-primary-light:  #e8f5ef;
+    --oyla-secondary:      #2c3e50;
+    --oyla-waiting:        #6c757d;
+    --oyla-signed:         #ffc107;
+    --oyla-done:           #28a745;
+    --oyla-danger:         #dc3545;
+    --oyla-info:           #0dcaf0;
+    --oyla-yedek:          #0d6efd;
+
+    /* Spacing */
+    --oyla-radius:         0.5rem;
+    --oyla-radius-lg:      0.75rem;
+    --oyla-shadow:         0 2px 8px rgba(0, 0, 0, 0.08);
+    --oyla-shadow-lg:      0 4px 16px rgba(0, 0, 0, 0.12);
+
+    /* Typography */
+    --oyla-font-base:      system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --oyla-font-size-base: 1rem;          /* 16px */
+    --oyla-line-height:    1.6;
+
+    /* Transitions */
+    --oyla-transition:     0.2s ease-in-out;
+    --oyla-transition-bar: 0.6s ease-out;
+}
+
+
+/* ============================================================
+   2. Base / Reset
+   ============================================================ */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--oyla-font-base);
+    font-size: var(--oyla-font-size-base);
+    line-height: var(--oyla-line-height);
+    color: #212529;
+    background-color: #f8f9fa;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Turkish characters render correctly at all weights */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--oyla-font-base);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+a {
+    color: var(--oyla-primary);
+    text-decoration: none;
+    transition: color var(--oyla-transition);
+}
+
+a:hover {
+    color: var(--oyla-primary-dark);
+    text-decoration: underline;
+}
+
+/* Focus rings */
+:focus-visible {
+    outline: 3px solid var(--oyla-primary);
+    outline-offset: 2px;
+}
+
+
+/* ============================================================
+   3. Bootstrap Overrides
+   ============================================================ */
+
+/* Primary button */
+.btn-primary {
+    --bs-btn-bg:               var(--oyla-primary);
+    --bs-btn-border-color:     var(--oyla-primary);
+    --bs-btn-hover-bg:         var(--oyla-primary-dark);
+    --bs-btn-hover-border-color: var(--oyla-primary-dark);
+    --bs-btn-active-bg:        var(--oyla-primary-dark);
+    --bs-btn-active-border-color: var(--oyla-primary-dark);
+    --bs-btn-focus-shadow-rgb: 29, 158, 117;
+    --bs-btn-color:            #fff;
+    --bs-btn-hover-color:      #fff;
+    --bs-btn-active-color:     #fff;
+}
+
+/* Outline primary button */
+.btn-outline-primary {
+    --bs-btn-color:              var(--oyla-primary);
+    --bs-btn-border-color:       var(--oyla-primary);
+    --bs-btn-hover-bg:           var(--oyla-primary);
+    --bs-btn-hover-border-color: var(--oyla-primary);
+    --bs-btn-hover-color:        #fff;
+    --bs-btn-active-bg:          var(--oyla-primary-dark);
+    --bs-btn-active-border-color:var(--oyla-primary-dark);
+    --bs-btn-focus-shadow-rgb:   29, 158, 117;
+}
+
+/* Navbar */
+.navbar {
+    background-color: var(--oyla-primary) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    padding-top: 0.65rem;
+    padding-bottom: 0.65rem;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: #fff !important;
+    letter-spacing: -0.02em;
+}
+
+.navbar-brand img {
+    height: 32px;
+    width: auto;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.88);
+    transition: color var(--oyla-transition);
+}
+
+.navbar-dark .navbar-nav .nav-link:hover,
+.navbar-dark .navbar-nav .nav-link.active {
+    color: #fff;
+}
+
+.navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255%2c255%2c255%2c0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Card defaults */
+.card {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: var(--oyla-radius-lg);
+    box-shadow: var(--oyla-shadow);
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    font-weight: 600;
+}
+
+/* Form controls */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--oyla-primary);
+    box-shadow: 0 0 0 0.2rem rgba(29, 158, 117, 0.2);
+}
+
+/* Progress bar */
+.progress-bar {
+    background-color: var(--oyla-primary);
+}
+
+/* Badges */
+.badge.bg-primary {
+    background-color: var(--oyla-primary) !important;
+}
+
+/* Alert success */
+.alert-success {
+    --bs-alert-color:      #0f5132;
+    --bs-alert-bg:         var(--oyla-primary-light);
+    --bs-alert-border-color: #badbcc;
+}
+
+/* Table hover */
+.table-hover > tbody > tr:hover > * {
+    background-color: var(--oyla-primary-light);
+}
+
+/* Pagination */
+.page-link {
+    color: var(--oyla-primary);
+}
+
+.page-item.active .page-link {
+    background-color: var(--oyla-primary);
+    border-color: var(--oyla-primary);
+}
+
+/* ============================================================
+   4. Typography Utilities
+   ============================================================ */
+
+/* Large stat display used in divan / admin panels */
+.display-stat {
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.03em;
+}
+
+/* Salon-readable subtitle */
+.display-stat-label {
+    font-size: clamp(0.85rem, 2vw, 1rem);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6c757d;
+}
+
+/* Multi-line clamp */
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.text-truncate-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Oyla brand color helpers */
+.text-oyla   { color: var(--oyla-primary) !important; }
+.bg-oyla     { background-color: var(--oyla-primary) !important; }
+.bg-oyla-light { background-color: var(--oyla-primary-light) !important; }
+.border-oyla { border-color: var(--oyla-primary) !important; }
+
+
+/* ============================================================
+   5. Status Indicators
+   ============================================================ */
+
+/* Dot + text badges */
+.status-waiting,
+.status-signed,
+.status-done {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-waiting::before,
+.status-signed::before,
+.status-done::before {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.status-waiting { color: var(--oyla-waiting); }
+.status-waiting::before { background-color: var(--oyla-waiting); }
+
+.status-signed { color: #856404; }
+.status-signed::before { background-color: var(--oyla-signed); }
+
+.status-done { color: #155724; }
+.status-done::before { background-color: var(--oyla-done); }
+
+/* Colored badge pills */
+.badge-waiting {
+    background-color: #e9ecef;
+    color: #495057;
+    font-weight: 500;
+    border-radius: 50rem;
+    padding: 0.35em 0.75em;
+}
+
+.badge-signed {
+    background-color: #fff3cd;
+    color: #856404;
+    font-weight: 500;
+    border-radius: 50rem;
+    padding: 0.35em 0.75em;
+}
+
+.badge-done {
+    background-color: #d1e7dd;
+    color: #155724;
+    font-weight: 500;
+    border-radius: 50rem;
+    padding: 0.35em 0.75em;
+}
+
+/* Unicode status icons */
+.status-icon {
+    font-size: 1.1em;
+    line-height: 1;
+}
+
+.status-icon-waiting::before { content: '○'; color: var(--oyla-waiting); }
+.status-icon-signed::before  { content: '◑'; color: var(--oyla-signed); }
+.status-icon-done::before    { content: '●'; color: var(--oyla-done); }
+
+
+/* ============================================================
+   6. Avatar
+   ============================================================ */
+.avatar,
+.avatar-sm,
+.avatar-lg {
+    display: inline-block;
+    object-fit: cover;
+    border-radius: 50%;
+    background-color: #dee2e6;
+    flex-shrink: 0;
+    vertical-align: middle;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+}
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+}
+
+.avatar-lg {
+    width: 64px;
+    height: 64px;
+}
+
+/* Anonymous SVG placeholder */
+.avatar-anon {
+    display: inline-block;
+    border-radius: 50%;
+    background-color: #dee2e6;
+    vertical-align: middle;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.avatar-anon.avatar    { width: 40px;  height: 40px; }
+.avatar-anon.avatar-sm { width: 32px;  height: 32px; }
+.avatar-anon.avatar-lg { width: 64px;  height: 64px; }
+
+
+/* ============================================================
+   7. Result / Bar Chart (Sonuç Ekranı)
+   ============================================================ */
+.result-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.result-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.result-candidate-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 180px;
+    max-width: 220px;
+    flex-shrink: 0;
+}
+
+.result-candidate-info .avatar {
+    flex-shrink: 0;
+}
+
+.result-candidate-name {
+    font-weight: 500;
+    font-size: 0.9rem;
+    line-height: 1.2;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.result-bar-wrap {
+    flex: 1;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    height: 28px;
+    position: relative;
+}
+
+.result-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width var(--oyla-transition-bar);
+    width: 0%;   /* animated from JS */
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding-left: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fff;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.result-bar.winner {
+    background-color: var(--oyla-primary);
+    box-shadow: 0 0 8px rgba(29, 158, 117, 0.45);
+}
+
+.result-bar.yedek {
+    background-color: var(--oyla-yedek);
+}
+
+.result-bar.other {
+    background-color: #adb5bd;
+}
+
+/* Winner frame on close */
+.result-row.winner-row .result-candidate-name {
+    color: var(--oyla-primary-dark);
+    font-weight: 700;
+}
+
+.result-row.winner-row .result-bar-wrap {
+    border: 2px solid var(--oyla-primary);
+}
+
+.result-count {
+    min-width: 60px;
+    text-align: right;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #495057;
+    flex-shrink: 0;
+}
+
+/* Compact bar for tables */
+.result-bar-inline {
+    display: inline-block;
+    height: 8px;
+    border-radius: 4px;
+    background-color: var(--oyla-primary);
+    vertical-align: middle;
+    transition: width var(--oyla-transition-bar);
+}
+
+
+/* ============================================================
+   8. Step Wizard (Görevli)
+   ============================================================ */
+.step-wizard {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    margin-bottom: 2rem;
+    position: relative;
+    gap: 0;
+}
+
+.step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+    text-align: center;
+}
+
+/* Connecting line */
+.step-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background-color: #dee2e6;
+    z-index: 0;
+}
+
+.step-item.completed:not(:last-child)::after {
+    background-color: var(--oyla-primary);
+}
+
+.step-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #dee2e6;
+    color: #6c757d;
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+    border: 2px solid #dee2e6;
+    transition: background-color var(--oyla-transition), border-color var(--oyla-transition);
+    flex-shrink: 0;
+}
+
+.step-item.active .step-circle {
+    background-color: var(--oyla-primary);
+    border-color: var(--oyla-primary);
+    color: #fff;
+    box-shadow: 0 0 0 4px var(--oyla-primary-light);
+}
+
+.step-item.completed .step-circle {
+    background-color: var(--oyla-primary);
+    border-color: var(--oyla-primary);
+    color: #fff;
+}
+
+.step-item.completed .step-circle::before {
+    content: '✓';
+    font-size: 1rem;
+}
+
+.step-item.completed .step-circle span {
+    display: none;
+}
+
+.step-label {
+    margin-top: 0.4rem;
+    font-size: 0.75rem;
+    color: #6c757d;
+    line-height: 1.2;
+    max-width: 80px;
+}
+
+.step-item.active .step-label {
+    color: var(--oyla-primary);
+    font-weight: 600;
+}
+
+.step-item.completed .step-label {
+    color: var(--oyla-primary);
+}
+
+
+/* ============================================================
+   9. Perde (Curtain) Mode
+   ============================================================ */
+.curtain-mode {
+    background-color: #0d1117 !important;
+    color: #f0f6fc !important;
+    min-height: 100vh;
+}
+
+.curtain-mode body {
+    background-color: #0d1117;
+}
+
+.curtain-mode .navbar {
+    background-color: #161b22 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.curtain-mode .card,
+.curtain-mode .stat-card {
+    background-color: transparent !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #f0f6fc !important;
+}
+
+.curtain-mode .card-header {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+    color: #f0f6fc !important;
+}
+
+.curtain-mode h1,
+.curtain-mode h2,
+.curtain-mode h3,
+.curtain-mode h4,
+.curtain-mode h5,
+.curtain-mode h6 {
+    color: #f0f6fc;
+}
+
+.curtain-mode .result-bar-wrap {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.curtain-mode .result-bar.winner {
+    background-color: #2dbe8c;
+    box-shadow: 0 0 12px rgba(45, 190, 140, 0.5);
+}
+
+.curtain-mode .result-bar.yedek {
+    background-color: #4d9fff;
+}
+
+.curtain-mode .result-bar.other {
+    background-color: #6c757d;
+}
+
+.curtain-mode .result-count {
+    color: #adb5bd;
+}
+
+.curtain-mode .result-candidate-name {
+    color: #f0f6fc;
+}
+
+.curtain-mode .display-stat {
+    color: #2dbe8c;
+}
+
+.curtain-mode .display-stat-label {
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.curtain-mode .text-muted {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Official results banner */
+.curtain-mode .official-results-banner {
+    background: linear-gradient(135deg, var(--oyla-primary), var(--oyla-primary-dark));
+    color: #fff;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-weight: 800;
+    text-align: center;
+    padding: 1rem 2rem;
+    letter-spacing: 0.05em;
+    border-radius: var(--oyla-radius);
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 24px rgba(29, 158, 117, 0.4);
+}
+
+/* Participation strip */
+.curtain-participation {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: var(--oyla-radius);
+    padding: 1rem 1.5rem;
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+}
+
+.curtain-participation .stat {
+    text-align: center;
+}
+
+.curtain-participation .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2dbe8c;
+    line-height: 1;
+}
+
+.curtain-participation .stat-label {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 0.2rem;
+}
+
+/* Large salon-ready result bars */
+.curtain-mode .result-bar-wrap {
+    height: 40px;
+}
+
+.curtain-mode .result-bar {
+    height: 40px;
+    font-size: 0.9rem;
+}
+
+.curtain-mode .result-candidate-info {
+    min-width: 200px;
+    max-width: 260px;
+}
+
+.curtain-mode .result-candidate-name {
+    font-size: 1rem;
+}
+
+.curtain-mode .result-count {
+    font-size: 1rem;
+    min-width: 70px;
+}
+
+
+/* ============================================================
+   10. Voting Screen (Üye Oylama — Mobile First)
+   ============================================================ */
+.voting-mode {
+    background-color: #f8f9fa;
+}
+
+.voting-mode .voting-header {
+    background-color: var(--oyla-primary);
+    color: #fff;
+    padding: 1rem;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.voting-mode .voting-header h1 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+    color: #fff;
+}
+
+.voting-mode .voting-timer {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    margin-top: 0.2rem;
+}
+
+/* Ballot section header */
+.ballot-section-header {
+    background-color: var(--oyla-secondary);
+    color: #fff;
+    padding: 0.75rem 1rem;
+    border-radius: var(--oyla-radius);
+    margin-bottom: 1rem;
+}
+
+.ballot-section-header h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+    color: #fff;
+}
+
+/* Quota progress bar */
+.quota-bar-wrap {
+    margin-top: 0.4rem;
+}
+
+.quota-bar-wrap .progress {
+    height: 6px;
+    border-radius: 3px;
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+.quota-bar-wrap .progress-bar {
+    background-color: #fff;
+    border-radius: 3px;
+}
+
+.quota-label {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 0.25rem;
+    text-align: right;
+}
+
+/* Candidate card */
+.candidate-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    background-color: #fff;
+    border: 2px solid #dee2e6;
+    border-radius: var(--oyla-radius);
+    cursor: pointer;
+    transition:
+        border-color var(--oyla-transition),
+        background-color var(--oyla-transition),
+        box-shadow var(--oyla-transition);
+    min-height: 60px;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    margin-bottom: 0.5rem;
+    position: relative;
+}
+
+.candidate-card:hover:not(.disabled) {
+    border-color: var(--oyla-primary);
+    background-color: var(--oyla-primary-light);
+}
+
+.candidate-card.selected {
+    border-color: var(--oyla-primary);
+    background-color: var(--oyla-primary-light);
+    box-shadow: 0 0 0 3px rgba(29, 158, 117, 0.2);
+}
+
+.candidate-card.selected::after {
+    content: '✓';
+    position: absolute;
+    right: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 26px;
+    height: 26px;
+    background-color: var(--oyla-primary);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    line-height: 26px;
+    text-align: center;
+}
+
+.candidate-card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+    background-color: #f8f9fa;
+}
+
+.candidate-card .candidate-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.candidate-card .candidate-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #212529;
+    line-height: 1.2;
+}
+
+.candidate-card.selected .candidate-name {
+    color: var(--oyla-primary-dark);
+}
+
+.candidate-card .candidate-title {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 0.15rem;
+}
+
+.candidate-card .candidate-no {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #fff;
+    background-color: var(--oyla-secondary);
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+/* Vote confirmation box */
+.vote-confirm-box {
+    background-color: #fff;
+    border: 2px solid var(--oyla-primary);
+    border-radius: var(--oyla-radius-lg);
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.vote-confirm-box .confirm-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--oyla-primary);
+    margin-bottom: 1rem;
+}
+
+/* Vote success */
+.vote-success-screen {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+.vote-success-screen .success-icon {
+    font-size: 4rem;
+    color: var(--oyla-primary);
+    margin-bottom: 1rem;
+}
+
+.vote-success-screen .receipt-code {
+    font-family: monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    background-color: var(--oyla-primary-light);
+    border: 2px solid var(--oyla-primary);
+    border-radius: var(--oyla-radius);
+    padding: 0.75rem 1.5rem;
+    display: inline-block;
+    margin: 1rem 0;
+}
+
+
+/* ============================================================
+   11. Stat Cards (Divan / Admin Panels)
+   ============================================================ */
+.stat-card {
+    background-color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: var(--oyla-radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--oyla-shadow);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: box-shadow var(--oyla-transition);
+    height: 100%;
+}
+
+.stat-card:hover {
+    box-shadow: var(--oyla-shadow-lg);
+}
+
+.stat-card .stat-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: var(--oyla-primary);
+    line-height: 1;
+}
+
+.stat-card .stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--oyla-secondary);
+    margin-bottom: 0.25rem;
+    letter-spacing: -0.02em;
+}
+
+.stat-card .stat-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.stat-card .stat-sublabel {
+    font-size: 0.75rem;
+    color: #adb5bd;
+    margin-top: 0.2rem;
+}
+
+/* Colored variants */
+.stat-card.stat-success .stat-number { color: var(--oyla-done); }
+.stat-card.stat-warning .stat-number { color: #856404; }
+.stat-card.stat-danger  .stat-number { color: var(--oyla-danger); }
+.stat-card.stat-primary .stat-number { color: var(--oyla-primary); }
+
+.stat-card.stat-success .stat-icon { color: var(--oyla-done); }
+.stat-card.stat-warning .stat-icon { color: var(--oyla-signed); }
+.stat-card.stat-danger  .stat-icon { color: var(--oyla-danger); }
+
+/* Action card */
+.action-card {
+    background-color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: var(--oyla-radius-lg);
+    padding: 1.25rem;
+    box-shadow: var(--oyla-shadow);
+    cursor: pointer;
+    transition:
+        transform var(--oyla-transition),
+        box-shadow var(--oyla-transition),
+        border-color var(--oyla-transition);
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.action-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--oyla-shadow-lg);
+    border-color: var(--oyla-primary);
+    color: inherit;
+    text-decoration: none;
+}
+
+.action-card:active {
+    transform: translateY(0);
+}
+
+.action-card .action-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: var(--oyla-primary);
+}
+
+.action-card .action-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #212529;
+}
+
+.action-card .action-desc {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 0.2rem;
+}
+
+
+/* ============================================================
+   12. Flash Messages
+   ============================================================ */
+.flash-message {
+    border-radius: var(--oyla-radius);
+    margin-bottom: 1rem;
+    animation: flashIn 0.3s ease-out;
+}
+
+@keyframes flashIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Auto-dismiss handled by JS but this provides visual cue */
+.flash-message[data-auto-dismiss] {
+    position: relative;
+    overflow: hidden;
+}
+
+.flash-message[data-auto-dismiss]::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background-color: currentColor;
+    opacity: 0.3;
+    animation: flashCountdown 5s linear forwards;
+}
+
+@keyframes flashCountdown {
+    from { width: 100%; }
+    to   { width: 0%; }
+}
+
+
+/* ============================================================
+   13. Hazirun / Member List Table (Görevli)
+   ============================================================ */
+.member-row {
+    transition: background-color var(--oyla-transition);
+}
+
+.member-row:hover {
+    background-color: var(--oyla-primary-light);
+}
+
+.member-row.row-waiting  { border-left: 3px solid var(--oyla-waiting); }
+.member-row.row-signed   { border-left: 3px solid var(--oyla-signed); }
+.member-row.row-done     { border-left: 3px solid var(--oyla-done); }
+
+/* Filter tabs */
+.status-filter-tabs {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.status-filter-tab {
+    padding: 0.3rem 0.8rem;
+    border-radius: 50rem;
+    border: 1px solid #dee2e6;
+    background-color: #fff;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #495057;
+    transition: all var(--oyla-transition);
+    user-select: none;
+}
+
+.status-filter-tab:hover {
+    border-color: var(--oyla-primary);
+    color: var(--oyla-primary);
+}
+
+.status-filter-tab.active {
+    background-color: var(--oyla-primary);
+    border-color: var(--oyla-primary);
+    color: #fff;
+}
+
+.status-filter-tab .tab-count {
+    display: inline-block;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 50rem;
+    padding: 0 0.45em;
+    font-size: 0.8em;
+    margin-left: 0.3em;
+    font-weight: 600;
+}
+
+.status-filter-tab.active .tab-count {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+
+/* ============================================================
+   14. Divan Panel Specific
+   ============================================================ */
+.election-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.4em 1em;
+    border-radius: 50rem;
+}
+
+.election-status-badge.status-draft   { background: #e9ecef; color: #495057; }
+.election-status-badge.status-test    { background: #fff3cd; color: #856404; }
+.election-status-badge.status-open    { background: #d1e7dd; color: #0a3622; }
+.election-status-badge.status-closed  { background: #f8d7da; color: #58151c; }
+
+.election-status-badge.status-open::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--oyla-done);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.5); }
+    70%  { box-shadow: 0 0 0 6px rgba(40, 167, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+}
+
+/* Participation progress */
+.participation-bar-wrap {
+    background-color: #e9ecef;
+    border-radius: 6px;
+    overflow: hidden;
+    height: 14px;
+}
+
+.participation-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--oyla-primary), var(--oyla-primary-dark));
+    border-radius: 6px;
+    transition: width var(--oyla-transition-bar);
+    position: relative;
+}
+
+.participation-bar.progress-bar-animated::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.25) 50%,
+        transparent 100%
+    );
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+
+/* ============================================================
+   15. Admin Panel
+   ============================================================ */
+.admin-sidebar {
+    background-color: var(--oyla-secondary);
+    min-height: calc(100vh - 56px);
+    padding: 1rem 0;
+}
+
+.admin-sidebar .nav-link {
+    color: rgba(255, 255, 255, 0.75);
+    padding: 0.6rem 1.25rem;
+    border-left: 3px solid transparent;
+    border-radius: 0;
+    transition: all var(--oyla-transition);
+    font-size: 0.9rem;
+}
+
+.admin-sidebar .nav-link:hover {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.08);
+    border-left-color: rgba(255, 255, 255, 0.3);
+}
+
+.admin-sidebar .nav-link.active {
+    color: #fff;
+    background-color: rgba(29, 158, 117, 0.2);
+    border-left-color: var(--oyla-primary);
+    font-weight: 600;
+}
+
+.admin-sidebar .nav-section-label {
+    padding: 0.75rem 1.25rem 0.25rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.35);
+}
+
+/* Activity log */
+.activity-log-entry {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.875rem;
+}
+
+.activity-log-entry:last-child {
+    border-bottom: none;
+}
+
+.activity-log-entry .log-time {
+    color: #adb5bd;
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-family: monospace;
+    font-size: 0.8rem;
+}
+
+.activity-log-entry .log-action {
+    font-weight: 600;
+    color: var(--oyla-primary-dark);
+    flex-shrink: 0;
+}
+
+.activity-log-entry .log-desc {
+    color: #495057;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* System health indicators */
+.health-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.health-indicator.ok     { color: var(--oyla-done); }
+.health-indicator.warn   { color: #856404; }
+.health-indicator.error  { color: var(--oyla-danger); }
+
+.health-indicator::before {
+    content: '';
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.health-indicator.ok::before    { background-color: var(--oyla-done); }
+.health-indicator.warn::before  { background-color: var(--oyla-signed); }
+.health-indicator.error::before { background-color: var(--oyla-danger); }
+
+
+/* ============================================================
+   16. Test Mode Panel
+   ============================================================ */
+.test-mode-banner {
+    background: repeating-linear-gradient(
+        -45deg,
+        #fff3cd,
+        #fff3cd 10px,
+        #fff8e1 10px,
+        #fff8e1 20px
+    );
+    border: 2px solid var(--oyla-signed);
+    border-radius: var(--oyla-radius);
+    padding: 0.75rem 1rem;
+    color: #856404;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.test-step {
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: var(--oyla-radius);
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    transition: all var(--oyla-transition);
+}
+
+.test-step.step-active {
+    border-color: var(--oyla-primary);
+    background-color: var(--oyla-primary-light);
+}
+
+.test-step.step-done {
+    border-color: var(--oyla-done);
+    background-color: #f0fff4;
+}
+
+.test-step.step-failed {
+    border-color: var(--oyla-danger);
+    background-color: #fff5f5;
+}
+
+.test-check-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.test-check-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0;
+    font-size: 0.875rem;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+
+.test-check-item:last-child {
+    border-bottom: none;
+}
+
+.test-check-item .check-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.test-check-item.pending  .check-icon { background: #e9ecef; color: #6c757d; }
+.test-check-item.running  .check-icon { background: #cff4fc; color: #055160; }
+.test-check-item.passed   .check-icon { background: #d1e7dd; color: #0a3622; }
+.test-check-item.failed   .check-icon { background: #f8d7da; color: #58151c; }
+
+
+/* ============================================================
+   17. Animations & Transitions
+   ============================================================ */
+.fade-in {
+    animation: fadeIn 0.35s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-out {
+    animation: fadeOut 0.3s ease-in forwards;
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+
+.slide-in-right {
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(16px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Spinner for loading states */
+.oyla-spinner {
+    display: inline-block;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 3px solid var(--oyla-primary-light);
+    border-top-color: var(--oyla-primary);
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+}
+
+.oyla-spinner-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 2px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Live update dot */
+.live-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--oyla-done);
+    animation: pulse 1.5s infinite;
+    margin-right: 0.3em;
+    vertical-align: middle;
+}
+
+
+/* ============================================================
+   18. Utility Classes
+   ============================================================ */
+.cursor-pointer { cursor: pointer; }
+.cursor-default { cursor: default; }
+.user-select-none { user-select: none; }
+
+/* Monospace for codes, hashes */
+.font-mono {
+    font-family: "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
+}
+
+/* Overflow scrollable table wrapper */
+.table-responsive-sm {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Sticky table header */
+.table-sticky-header thead th {
+    position: sticky;
+    top: 0;
+    background-color: #fff;
+    z-index: 2;
+    box-shadow: 0 1px 0 #dee2e6;
+}
+
+/* Page section header */
+.page-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid var(--oyla-primary-light);
+}
+
+.page-section-header h2,
+.page-section-header h3 {
+    margin: 0;
+    font-weight: 700;
+    color: var(--oyla-secondary);
+}
+
+
+/* ============================================================
+   19. Responsive Breakpoints
+   ============================================================ */
+
+/* Small (mobile) — up to 576px */
+@media (max-width: 575.98px) {
+    html { font-size: 15px; }
+
+    .stat-card .stat-number { font-size: 2rem; }
+    .display-stat { font-size: 2rem; }
+
+    .result-candidate-info {
+        min-width: 110px;
+        max-width: 130px;
+    }
+
+    .result-candidate-info .avatar { display: none; }
+
+    .navbar-brand { font-size: 1.1rem; }
+
+    .step-label { display: none; }
+
+    .voting-mode .candidate-card {
+        padding: 0.75rem;
+    }
+
+    .page-section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* Medium (tablet) — 576–991px */
+@media (min-width: 576px) and (max-width: 991.98px) {
+    .result-candidate-info {
+        min-width: 150px;
+        max-width: 180px;
+    }
+}
+
+/* Large (desktop+) — 992px+ */
+@media (min-width: 992px) {
+    body { font-size: 1rem; }
+
+    .voting-mode {
+        max-width: 640px;
+        margin: 0 auto;
+    }
+
+    .stat-card .stat-number { font-size: 2.8rem; }
+}
+
+/* Extra large (salon projector) — 1400px+ */
+@media (min-width: 1400px) {
+    .curtain-mode .result-bar-wrap { height: 52px; }
+    .curtain-mode .result-bar      { height: 52px; font-size: 1rem; }
+    .curtain-mode .result-candidate-info {
+        min-width: 260px;
+        max-width: 320px;
+    }
+    .curtain-mode .result-candidate-name { font-size: 1.1rem; }
+    .curtain-mode .result-count { font-size: 1.1rem; min-width: 80px; }
+
+    .curtain-participation .stat-value { font-size: 2.5rem; }
+}
+
+
+/* ============================================================
+   20. Print Styles
+   ============================================================ */
+@media print {
+    body {
+        font-size: 12pt;
+        background-color: #fff !important;
+        color: #000 !important;
+    }
+
+    .navbar,
+    .admin-sidebar,
+    .btn,
+    .step-wizard,
+    .status-filter-tabs,
+    .flash-message,
+    #toast-container,
+    .no-print {
+        display: none !important;
+    }
+
+    .card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+        break-inside: avoid;
+    }
+
+    .card-header {
+        background-color: #f0f0f0 !important;
+        color: #000 !important;
+    }
+
+    a { color: #000 !important; text-decoration: none !important; }
+
+    .result-bar-wrap {
+        border: 1px solid #ccc;
+    }
+
+    .result-bar {
+        transition: none !important;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    .stat-card {
+        border: 1px solid #ccc !important;
+        box-shadow: none !important;
+    }
+
+    .container, .container-fluid {
+        max-width: 100% !important;
+        padding: 0 !important;
+    }
+
+    /* PDF tutanak specific */
+    .tutanak-title {
+        font-size: 16pt;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 12pt;
+    }
+
+    .tutanak-section {
+        margin-bottom: 16pt;
+    }
+
+    .imza-alani {
+        display: flex;
+        gap: 2cm;
+        margin-top: 2cm;
+        flex-wrap: wrap;
+    }
+
+    .imza-kutu {
+        border-top: 1px solid #000;
+        padding-top: 4pt;
+        min-width: 5cm;
+        text-align: center;
+    }
+}
