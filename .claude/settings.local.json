@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(vendor/bin/phpunit tests/Unit/Core/RouterTest.php --colors=never)",
+      "Bash(composer install:*)",
+      "Bash(where composer:*)",
+      "Bash(php --version)"
+    ]
+  }
+}
