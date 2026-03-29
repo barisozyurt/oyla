@@ -134,8 +134,7 @@ oyla/
 
 ## Katkı
 
-Pull request ve issue'lar memnuniyetle karşılanır.
-Katkı rehberi için `CONTRIBUTING.md` dosyasına bakınız (yakında).
+Katkıda bulunmak isteyenler [CONTRIBUTING.md](CONTRIBUTING.md) dosyasına göz atabilir.
 
 ---
 
@@ -147,5 +146,5 @@ MIT License — Detaylar için [LICENSE](LICENSE) dosyasına bakınız.
 
 ## İletişim
 
-Geliştirici: **Barış Özyurt**
+Geliştirici: **Barış Özyurt** — mirket@mirket.io
 Proje: [github.com/barisozyurt/oyla](https://github.com/barisozyurt/oyla)

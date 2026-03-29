@@ -40,3 +40,10 @@ desktop.ini
 
 # Docker yerel override
 docker-compose.override.yml
+
+# Log dosyaları (dizini koru)
+/logs/*.log
+
+# Yüklenen fotoğraflar (dizini koru)
+/public/uploads/photos/*
+!/public/uploads/photos/.gitkeep
