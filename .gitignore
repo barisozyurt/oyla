@@ -1,0 +1,42 @@
+﻿# Claude Code — yerel geliştirici dosyası
+CLAUDE.md
+
+# Proje spesifikasyonu (yerel)
+/docs/
+
+# Ortam değişkenleri
+.env
+.env.local
+.env.production
+
+# Composer
+/vendor/
+composer.lock
+
+# Bağımlılıklar
+node_modules/
+
+# Yüklenen dosyalar
+/public/uploads/
+
+# Loglar
+/logs/
+*.log
+
+# Önbellek
+/cache/
+/tmp/
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Docker yerel override
+docker-compose.override.yml
