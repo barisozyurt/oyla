@@ -443,6 +443,7 @@ class MemberController extends Controller
     public function sendTestSms(): void
     {
         Middleware::requireAuth('admin');
+        $this->verifyCsrf();
 
         $electionId = $this->currentElectionId();
         if (!$electionId) {

@@ -1,0 +1,41 @@
+## Production override dosyası.
+## Kullanım:
+##   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+##
+## Bu dosya:
+## - OPcache'i agresif (timestamp validation kapalı)
+## - HTTPS terminate edecek nginx-proxy / traefik gibi bir reverse-proxy varsayar
+## - DB portunu dışarı açmaz
+## - Test mode route'ları zaten APP_ENV=production iken backend'de devre dışıdır
+## - Volume'ları read-only mount eder (logs ve uploads hariç)
+
+services:
+  nginx:
+    ports:
+      - "8080:80"
+    volumes:
+      - ./public:/var/www/html/public:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+
+  php:
+    volumes:
+      - ./app:/var/www/html/app:ro
+      - ./config:/var/www/html/config:ro
+      - ./public:/var/www/html/public:ro
+      - ./vendor:/var/www/html/vendor:ro
+      - ./database:/var/www/html/database:ro
+      - ./logs:/var/www/html/logs
+      - ./public/uploads:/var/www/html/public/uploads
+    environment:
+      # Production'da OPcache agresif modda — kod değişimi container restart ister
+      - PHP_OPCACHE_ENABLE=1
+      - PHP_OPCACHE_VALIDATE_TIMESTAMPS=0
+      - PHP_OPCACHE_MEMORY_CONSUMPTION=256
+      - PHP_OPCACHE_MAX_ACCELERATED_FILES=20000
+      - PHP_OPCACHE_INTERNED_STRINGS_BUFFER=16
+    restart: always
+
+  mariadb:
+    # Production'da port dışarı KAPALI
+    ports: []
+    restart: always

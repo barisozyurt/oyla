@@ -295,7 +295,7 @@
     }
 
     /**
-     * CLAUDE.md Bölüm 7 formatında metin raporu oluşturur.
+     * Test sonuçlarını metin raporu formatında oluşturur.
      */
     function buildTestReport(d) {
         if (!testReportContent) return;

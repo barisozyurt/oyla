@@ -22,11 +22,30 @@ use App\Services\TokenService;
 class TestModeController extends Controller
 {
     /**
+     * Production ortamında bu controller'ın hiçbir endpoint'i çağrılmamalı —
+     * App::registerRoutes() içinde zaten APP_ENV=production iken kayıt edilmiyor.
+     * Buradaki guard ikinci savunma hattıdır.
+     */
+    private function ensureNonProduction(): void
+    {
+        if (\App\Core\Config::isProduction()) {
+            \App\Core\Logger::warning('TestMode endpoint production\'da çağrıldı', [
+                'uri'  => $_SERVER['REQUEST_URI'] ?? '',
+                'user' => $_SESSION['user']['username'] ?? null,
+            ]);
+            http_response_code(404);
+            \App\Core\ErrorHandler::renderTemplate(404);
+            exit;
+        }
+    }
+
+    /**
      * Render the test mode dashboard.
      * Shows current election info and the three test sections.
      */
     public function index(): void
     {
+        $this->ensureNonProduction();
         Middleware::requireAuth('admin');
 
         $electionModel = new Election();
@@ -52,7 +71,9 @@ class TestModeController extends Controller
      */
     public function runSystemChecks(): void
     {
+        $this->ensureNonProduction();
         Middleware::requireAuth('admin');
+        $this->verifyCsrf();
 
         $checks = [];
 
@@ -126,6 +147,7 @@ class TestModeController extends Controller
                 // Clean up
                 $db->prepare("DELETE FROM tokens WHERE member_id = ?")->execute([$tmpMemberId]);
                 $db->prepare("DELETE FROM members WHERE id = ?")->execute([$tmpMemberId]);
+                unset($tokenModel);
 
                 $checks[] = [
                     'name'   => 'Token Üretimi',
@@ -192,9 +214,9 @@ class TestModeController extends Controller
                 )->execute([(int) $election['id'], 'TEST-CHK-DBLVOTE', 'Test Double Vote']);
                 $tmpMemberId = (int) $db->lastInsertId();
 
-                $token      = $tokenSvc->generate((int) $election['id'], $tmpMemberId);
+                $token       = $tokenSvc->generate((int) $election['id'], $tmpMemberId);
                 $validBefore = $tokenSvc->validate($token['plain']) !== null;
-                $tokenSvc->burn($token['hash']);
+                $tokenSvc->burnAtomic($token['hash']);
                 $validAfter  = $tokenSvc->validate($token['plain']) !== null;
 
                 // Clean up
@@ -392,6 +414,7 @@ class TestModeController extends Controller
      */
     public function runTestElection(): void
     {
+        $this->ensureNonProduction();
         Middleware::requireAuth('admin');
         $this->verifyCsrf();
 
@@ -592,6 +615,7 @@ class TestModeController extends Controller
      */
     public function cleanup(): void
     {
+        $this->ensureNonProduction();
         Middleware::requireAuth('admin');
         $this->verifyCsrf();
 

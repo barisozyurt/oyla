@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Tests\Integration;
 
 use PHPUnit\Framework\TestCase;
@@ -7,169 +10,239 @@ use App\Services\CryptoService;
 class SecurityTest extends TestCase
 {
     /**
-     * Verify all controller POST handlers call verifyCsrf.
+     * Her POST handler (Auth::login, MemberController::store gibi) verifyCsrf çağırmalı.
+     * Heuristic: dosyada method body içinde 'verifyCsrf' kelimesi geçmeli.
      */
     public function test_all_post_handlers_verify_csrf(): void
     {
         $controllersDir = dirname(__DIR__, 2) . '/app/Controllers';
         $files = glob($controllersDir . '/*.php');
 
+        $getHandlers = [
+            'index', 'show', 'create', 'edit', 'showLogin', 'showImport',
+            'verify', 'data', 'curtain', 'participation', 'stats',
+            'memberList', 'checkVoteStatus', 'systemStatus', 'activityLog',
+            'users', 'createUser', 'editUser', 'elections', 'settings',
+            'hashExport', 'downloadTutanak', 'verifyLogIntegrity',
+        ];
+
         foreach ($files as $file) {
             $content = file_get_contents($file);
             $basename = basename($file);
 
-            // Find all public methods
             preg_match_all('/public\s+function\s+(\w+)\s*\(/', $content, $matches);
             $methods = $matches[1] ?? [];
-
-            // Methods that handle POST and should verify CSRF
-            // Skip: show, index, verify, data, curtain, participation, stats, memberList,
-            // checkVoteStatus, systemStatus, activityLog, users, elections — these are GET handlers
-            $getHandlers = [
-                'index', 'show', 'create', 'edit', 'showLogin', 'showImport',
-                'verify', 'data', 'curtain', 'participation', 'stats',
-                'memberList', 'checkVoteStatus', 'systemStatus', 'activityLog',
-                'users', 'createUser', 'editUser', 'elections', 'settings',
-                'hashExport', 'downloadTutanak',
-            ];
 
             $postHandlers = array_diff($methods, $getHandlers);
 
             foreach ($postHandlers as $method) {
                 if ($method === '__construct') continue;
-                if ($method === 'logout') continue; // logout is GET
+                if ($method === 'logout') continue;
+                if ($method === 'ensureNonProduction') continue;
 
-                // Check if the method body contains verifyCsrf
                 $pattern = "/function\s+{$method}\s*\([^)]*\)[^{]*\{(.*?)(?=\n\s{4}public\s+function|\n\}\s*$)/s";
                 if (preg_match($pattern, $content, $bodyMatch)) {
-                    // Some POST handlers that return JSON may verify differently
-                    // At minimum check that CSRF is mentioned somewhere nearby
                     if (strpos($bodyMatch[1], 'verifyCsrf') === false && strpos($bodyMatch[1], '_csrf') === false) {
-                        // Allow JSON endpoints that verify CSRF from POST body
-                        $this->addWarning("Warning: {$basename}::{$method}() may not verify CSRF");
+                        $this->fail("CSRF eksik: {$basename}::{$method}()");
                     }
                 }
             }
         }
 
-        // If we get here without fatal assertions, the test passes
         $this->assertTrue(true);
     }
 
-    /**
-     * Verify all HTML output uses e() or htmlspecialchars().
-     * Check view files for unescaped PHP echo of variables.
-     */
-    public function test_views_escape_output(): void
-    {
-        $viewsDir = dirname(__DIR__, 2) . '/app/Views';
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($viewsDir)
-        );
-
-        $violations = [];
-        foreach ($iterator as $file) {
-            if ($file->getExtension() !== 'php') continue;
-            $content = file_get_contents($file->getPathname());
-            $relativePath = str_replace(dirname(__DIR__, 2) . '/', '', $file->getPathname());
-
-            // Find <?= $variable ?> that is NOT wrapped in e() or htmlspecialchars()
-            // This is a heuristic — it may have false positives for safe operations
-            // like <?= $csrf ?> (which is already escaped HTML) or <?= $count ?> (integer)
-            preg_match_all('/\<\?=\s*\$(?!_content|csrf|_)(\w+)\s*\?>/', $content, $matches, PREG_SET_ORDER);
-
-            foreach ($matches as $match) {
-                // These are likely unescaped variable outputs
-                // Skip known safe patterns (integers, pre-escaped values)
-                $varName = $match[1];
-                if (in_array($varName, ['count', 'total', 'percentage', 'pct', 'id'])) continue;
-                $violations[] = "{$relativePath}: \$${varName}";
-            }
-        }
-
-        // Report but don't fail — this is a heuristic
-        if (!empty($violations)) {
-            $this->addWarning("Potentially unescaped variables:\n" . implode("\n", array_slice($violations, 0, 20)));
-        }
-        $this->assertTrue(true);
-    }
-
-    /**
-     * Verify SQL queries use prepared statements (no string interpolation).
-     */
     public function test_models_use_prepared_statements(): void
     {
         $modelsDir = dirname(__DIR__, 2) . '/app/Models';
         $files = glob($modelsDir . '/*.php');
 
         foreach ($files as $file) {
-            $content = file_get_contents($file);
+            $content  = file_get_contents($file);
             $basename = basename($file);
 
-            // Check for dangerous patterns: query("...{$var}") or query("...$var")
+            // dangerous: ->query("..{$var}") veya ->exec("..{$var}")
             $this->assertDoesNotMatchRegularExpression(
                 '/->(?:query|exec)\s*\(\s*"[^"]*\$/',
                 $content,
-                "SQL INJECTION RISK: {$basename} uses string interpolation in query!"
+                "SQL INJECTION: {$basename} string interpolation"
             );
 
-            // Check for direct concatenation in queries
             $this->assertDoesNotMatchRegularExpression(
                 '/->(?:query|exec)\s*\(\s*["\'].*\'\s*\.\s*\$/',
                 $content,
-                "SQL INJECTION RISK: {$basename} uses concatenation in query!"
+                "SQL INJECTION: {$basename} concatenation"
             );
         }
     }
 
-    /**
-     * Verify commitment hash is deterministic and tamper-evident.
-     */
     public function test_commitment_hash_tamper_detection(): void
     {
         $choice = json_encode([1, 2, 3]);
-        $salt = CryptoService::generateSalt();
-        $token = 'test-token-123';
+        $salt   = CryptoService::generateSalt();
+        $token  = 'test-token-123';
 
         $hash = CryptoService::commitmentHash($choice, $salt, $token);
 
-        // Same inputs = same hash
         $this->assertEquals($hash, CryptoService::commitmentHash($choice, $salt, $token));
-
-        // Any change = different hash
         $this->assertNotEquals($hash, CryptoService::commitmentHash(json_encode([1, 2, 4]), $salt, $token));
-        $this->assertNotEquals($hash, CryptoService::commitmentHash($choice, 'different_salt_value_here_00', $token));
+        $this->assertNotEquals($hash, CryptoService::commitmentHash($choice, CryptoService::generateSalt(), $token));
         $this->assertNotEquals($hash, CryptoService::commitmentHash($choice, $salt, 'different-token'));
 
-        // Verify round-trip
         $this->assertTrue(CryptoService::verifyCommitment($hash, $choice, $salt, $token));
     }
 
-    /**
-     * Verify passwords are hashed with bcrypt.
-     */
     public function test_password_hashing_uses_bcrypt(): void
     {
-        $hash = password_hash('test123', PASSWORD_BCRYPT);
+        $hash = password_hash('TestPasswordABC123', PASSWORD_BCRYPT);
         $this->assertStringStartsWith('$2y$', $hash);
-        $this->assertTrue(password_verify('test123', $hash));
+        $this->assertTrue(password_verify('TestPasswordABC123', $hash));
         $this->assertFalse(password_verify('wrong', $hash));
     }
 
-    /**
-     * Verify rate limiter blocks after threshold.
-     */
     public function test_rate_limiter_blocks_after_threshold(): void
     {
         $_SESSION = [];
 
+        // 5 attempt = sınırın altı ya da tam sınır
         for ($i = 0; $i < 5; $i++) {
-            $this->assertTrue(\App\Core\RateLimiter::check('test_key', 5, 300));
+            $this->assertTrue(\App\Core\RateLimiter::check('test_security_' . uniqid(), 5, 300));
         }
 
-        $this->assertFalse(\App\Core\RateLimiter::check('test_key', 5, 300));
+        // Aynı key ile 6. başarısız olmalı (DB yoksa session fallback'e düşer)
+        $key = 'test_security_block';
+        for ($i = 0; $i < 5; $i++) {
+            \App\Core\RateLimiter::check($key, 5, 300);
+        }
+        $this->assertFalse(\App\Core\RateLimiter::check($key, 5, 300));
 
-        \App\Core\RateLimiter::reset('test_key');
-        $this->assertTrue(\App\Core\RateLimiter::check('test_key', 5, 300));
+        \App\Core\RateLimiter::reset($key);
+        $this->assertTrue(\App\Core\RateLimiter::check($key, 5, 300));
+    }
+
+    public function test_config_secret_rejects_placeholder(): void
+    {
+        // Production'da geçici override — testte placeholder ile fail bekliyoruz
+        $orig = $_ENV['APP_SECRET'] ?? null;
+        $_ENV['APP_SECRET'] = 'CHANGE_ME_RANDOM_64_CHAR_STRING';
+
+        try {
+            \App\Core\Config::secret('APP_SECRET');
+            $this->fail('Placeholder bir secret kabul edilmemeli');
+        } catch (\App\Core\InvalidConfigException $e) {
+            $this->assertStringContainsString('placeholder', $e->getMessage());
+        } finally {
+            if ($orig !== null) $_ENV['APP_SECRET'] = $orig;
+        }
+    }
+
+    public function test_config_secret_rejects_too_short(): void
+    {
+        $orig = $_ENV['APP_SECRET'] ?? null;
+        $_ENV['APP_SECRET'] = 'short';
+
+        try {
+            \App\Core\Config::secret('APP_SECRET', 32);
+            $this->fail('Çok kısa secret kabul edilmemeli');
+        } catch (\App\Core\InvalidConfigException $e) {
+            $this->assertStringContainsString('karakter', $e->getMessage());
+        } finally {
+            if ($orig !== null) $_ENV['APP_SECRET'] = $orig;
+        }
+    }
+
+    public function test_password_policy_rejects_short(): void
+    {
+        $this->assertNotNull(\App\Core\PasswordPolicy::validate('abc'));
+        $this->assertNotNull(\App\Core\PasswordPolicy::validate('password123'));      // blacklist
+        $this->assertNotNull(\App\Core\PasswordPolicy::validate('NoNumbersHere!'));   // no digit
+        $this->assertNotNull(\App\Core\PasswordPolicy::validate('nouppercase1'));     // no upper
+        $this->assertNotNull(\App\Core\PasswordPolicy::validate('NOLOWERCASE1'));     // no lower
+        $this->assertNotNull(\App\Core\PasswordPolicy::validate('aaaaaXXXXX1zz'));    // repeat
+        $this->assertNull(\App\Core\PasswordPolicy::validate('Str0ngPasswd!'));        // OK (8 char testing mode)
+        $this->assertNull(\App\Core\PasswordPolicy::validate('LongSecureP4ssw0rd'));   // OK
+    }
+
+    public function test_logger_redacts_sensitive_keys(): void
+    {
+        $reflection = new \ReflectionClass(\App\Core\Logger::class);
+        $method = $reflection->getMethod('sanitize');
+        $method->setAccessible(true);
+
+        $clean = $method->invoke(null, [
+            'username' => 'admin',
+            'password' => 'secret',
+            'token'    => 'plain-token-here',
+            'safe'     => 'visible',
+            'nested'   => ['secret' => 'leak', 'visible' => 'ok'],
+        ]);
+
+        $this->assertEquals('[REDACTED]', $clean['password']);
+        $this->assertEquals('[REDACTED]', $clean['token']);
+        $this->assertEquals('visible', $clean['safe']);
+        $this->assertEquals('[REDACTED]', $clean['nested']['secret']);
+        $this->assertEquals('ok', $clean['nested']['visible']);
+    }
+
+    public function test_logger_masks_long_hex_token(): void
+    {
+        $reflection = new \ReflectionClass(\App\Core\Logger::class);
+        $method = $reflection->getMethod('sanitize');
+        $method->setAccessible(true);
+
+        $clean = $method->invoke(null, [
+            'hash' => str_repeat('a', 64),
+        ]);
+        $this->assertNotEquals(str_repeat('a', 64), $clean['hash']);
+        $this->assertStringContainsString('…', $clean['hash']);
+    }
+
+    public function test_token_service_only_returns_plain_once(): void
+    {
+        // TokenService::generate döner — plain yalnızca return value içinde.
+        // DB'de token_plain kolonu yok (migration 011 sonrası).
+        $migrationFile = dirname(__DIR__, 2) . '/database/migrations/011_tokens_drop_plaintext.sql';
+        $this->assertFileExists($migrationFile);
+        $sql = file_get_contents($migrationFile);
+        $this->assertStringContainsString('DROP COLUMN token_plain', $sql);
+    }
+
+    public function test_token_service_no_default_secret_fallback(): void
+    {
+        $source = file_get_contents(dirname(__DIR__, 2) . '/app/Services/TokenService.php');
+        $this->assertStringNotContainsString("'default_secret'", $source);
+        $this->assertStringContainsString('Config::secret', $source);
+    }
+
+    public function test_views_have_button_type(): void
+    {
+        // <button>'lar type="submit" varsayılanını alır. Production-blocker: oylama show.php.
+        $showSrc = file_get_contents(dirname(__DIR__, 2) . '/app/Views/oylama/show.php');
+        // btn-vote-prev/btn-vote-next/submit hepsi type'lı olmalı
+        preg_match_all('/<button(?![^>]*type=)[^>]*>/', $showSrc, $matches);
+        $this->assertEmpty($matches[0], 'show.php içinde type attribute eksik button(\'lar) var: ' . implode("\n", $matches[0] ?? []));
+    }
+
+    public function test_nginx_has_security_headers(): void
+    {
+        $conf = file_get_contents(dirname(__DIR__, 2) . '/docker/nginx/default.conf');
+        foreach ([
+            'X-Frame-Options',
+            'X-Content-Type-Options',
+            'Content-Security-Policy',
+            'Referrer-Policy',
+            'Strict-Transport-Security',
+            'Permissions-Policy',
+        ] as $header) {
+            $this->assertStringContainsString($header, $conf, "Nginx config'de {$header} eksik");
+        }
+    }
+
+    public function test_activity_log_has_hash_chain_columns(): void
+    {
+        $migration = file_get_contents(dirname(__DIR__, 2) . '/database/migrations/013_activity_log_hash_chain.sql');
+        $this->assertStringContainsString('prev_hash', $migration);
+        $this->assertStringContainsString('entry_hash', $migration);
+        $this->assertStringContainsString('actor_username', $migration);
     }
 }

@@ -148,8 +148,9 @@ class AdminController extends Controller
         } elseif ($userModel->findByUsername($username) !== null) {
             $errors[] = 'Bu kullanıcı adı zaten kullanılıyor.';
         }
-        if (strlen($password) < 6) {
-            $errors[] = 'Şifre en az 6 karakter olmalıdır.';
+        $pwError = \App\Core\PasswordPolicy::validate($password);
+        if ($pwError !== null) {
+            $errors[] = $pwError;
         }
         if (!in_array($role, ['admin', 'divan_baskani', 'gorevli'], true)) {
             $errors[] = 'Geçerli bir rol seçiniz.';
@@ -243,8 +244,11 @@ class AdminController extends Controller
                 $errors[] = 'Bu kullanıcı adı zaten kullanılıyor.';
             }
         }
-        if ($password !== '' && strlen($password) < 6) {
-            $errors[] = 'Şifre en az 6 karakter olmalıdır.';
+        if ($password !== '') {
+            $pwError = \App\Core\PasswordPolicy::validate($password);
+            if ($pwError !== null) {
+                $errors[] = $pwError;
+            }
         }
         if (!in_array($role, ['admin', 'divan_baskani', 'gorevli'], true)) {
             $errors[] = 'Geçerli bir rol seçiniz.';
@@ -494,6 +498,74 @@ class AdminController extends Controller
 
         flash('success', "Seçim \"{$title}\" oluşturuldu ve aktif seçim olarak ayarlandı.");
         $this->redirect('/admin/elections');
+    }
+
+    /**
+     * Activity log zincirinin bütünlüğünü doğrula (admin-only).
+     * Tampering varsa kullanıcıya bozulmuş satır ID'lerini gösterir.
+     */
+    public function verifyLogIntegrity(): void
+    {
+        Middleware::requireAuth('admin');
+
+        $result = \App\Services\ActivityLogService::verifyChain();
+
+        if (($this->input('format') ?? '') === 'json') {
+            $this->json($result);
+            return;
+        }
+
+        $this->layout('main', 'admin.log_integrity', [
+            'pageTitle' => 'Audit Log Bütünlük Denetimi',
+            'result'    => $result,
+        ]);
+    }
+
+    /**
+     * KVKK retention: kapanmış seçimlerin PII'larını anonymize et.
+     *
+     * Yalnızca status='closed' VE closed_at < (now - PII_RETENTION_DAYS) olan seçimler etkilenir.
+     */
+    public function anonymizeOldData(): void
+    {
+        Middleware::requireAuth('admin');
+        $this->verifyCsrf();
+
+        $retentionDays = (int) ($_ENV['PII_RETENTION_DAYS'] ?? 365);
+        $db = \App\Core\Database::getInstance();
+        $stmt = $db->prepare(
+            "SELECT id, title FROM elections
+             WHERE status = 'closed'
+               AND closed_at IS NOT NULL
+               AND closed_at < DATE_SUB(NOW(), INTERVAL ? DAY)"
+        );
+        $stmt->execute([$retentionDays]);
+        $electionsToAnonymize = $stmt->fetchAll();
+
+        $memberModel = new Member();
+        $totalAnonymized = 0;
+        $anonymizedElections = [];
+
+        foreach ($electionsToAnonymize as $election) {
+            $count = $memberModel->anonymizeForElection((int) $election['id']);
+            $totalAnonymized += $count;
+            if ($count > 0) {
+                $anonymizedElections[] = ['id' => $election['id'], 'title' => $election['title'], 'count' => $count];
+                ActivityLogService::log(
+                    'pii_anonymized',
+                    "KVKK retention: {$count} üye anonimleştirildi (seçim #{$election['id']})",
+                    (int) $election['id']
+                );
+            }
+        }
+
+        $this->json([
+            'success'             => true,
+            'retention_days'      => $retentionDays,
+            'elections_processed' => count($electionsToAnonymize),
+            'members_anonymized'  => $totalAnonymized,
+            'details'             => $anonymizedElections,
+        ]);
     }
 
     /**

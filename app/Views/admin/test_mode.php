@@ -294,7 +294,7 @@ $statusMap = [
     </div>
 </div>
 
-<!-- Test raporu (CLAUDE.md Bölüm 7 formatı) -->
+<!-- Test raporu -->
 <div id="testReportSection" class="d-none">
     <div class="card border-0 shadow-sm mb-4 border-start border-4 border-success">
         <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">

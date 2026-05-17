@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
-         bootstrap="vendor/autoload.php"
-         colors="true">
+         bootstrap="tests/bootstrap.php"
+         colors="true"
+         failOnRisky="true"
+         failOnWarning="true"
+         cacheDirectory=".phpunit.cache">
     <testsuites>
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
@@ -11,14 +14,25 @@
             <directory>tests/Integration</directory>
         </testsuite>
     </testsuites>
+    <source>
+        <include>
+            <directory>app</directory>
+        </include>
+        <exclude>
+            <file>app/Services/PdfService.php</file>
+        </exclude>
+    </source>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <env name="APP_DEBUG" value="true"/>
         <env name="DB_HOST" value="127.0.0.1"/>
         <env name="DB_PORT" value="3306"/>
         <env name="DB_NAME" value="oyla_test"/>
-        <env name="DB_USER" value="oyla_user"/>
-        <env name="DB_PASS" value="GUCLU_SIFRE"/>
+        <env name="DB_USER" value="oyla_test"/>
+        <env name="DB_PASS" value="phpunit_test_password_strong"/>
         <env name="SMS_MOCK" value="true"/>
-        <env name="TOKEN_SECRET" value="test_secret_key_for_unit_tests"/>
+        <env name="APP_SECRET" value="phpunit_app_secret_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"/>
+        <env name="TOKEN_SECRET" value="phpunit_token_secret_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"/>
+        <env name="TOKEN_EXPIRE_MINUTES" value="120"/>
     </php>
 </phpunit>

@@ -1,0 +1,269 @@
+#!/usr/bin/env php
+<?php
+/**
+ * Oyla — etkileşimli kurulum.
+ *
+ * Görevi:
+ *   1. .env dosyasında APP_SECRET ve TOKEN_SECRET'in dolu/güvenli olduğunu garanti eder.
+ *      Boş veya placeholder ise yeni 64 karakterlik rastgele değer üretip yazar.
+ *   2. DB_PASS ve MYSQL_ROOT_PASSWORD eksikse rastgele 32 karakterlik değer üretip yazar.
+ *   3. İlk admin kullanıcısının parolasını sorar (min. 12 karakter, sözlük kontrolü).
+ *   4. SEED_DEMO_DATA=true ise development'ta demo veriyi yükler — her demo kullanıcı için
+ *      rastgele parola üretir ve ekrana yazar.
+ *
+ * Kullanım:
+ *   bin/install                 # Tam etkileşimli kurulum, demo veri sorulacak
+ *   bin/install --no-demo       # Demo veri yüklemeden production-ready setup
+ *   bin/install --print-secrets # Mevcut .env'i okuyarak sadece eksik secret'ları üret
+ */
+
+declare(strict_types=1);
+
+$basePath = dirname(__DIR__);
+$envPath  = $basePath . '/.env';
+
+$noDemo = in_array('--no-demo', $argv, true);
+$printSecretsOnly = in_array('--print-secrets', $argv, true);
+
+if (!file_exists($envPath)) {
+    if (!file_exists($basePath . '/.env.example')) {
+        fwrite(STDERR, "[-] .env.example bulunamadı.\n");
+        exit(1);
+    }
+    copy($basePath . '/.env.example', $envPath);
+    echo "[+] .env oluşturuldu (.env.example'dan kopyalandı).\n";
+}
+
+$env = parseEnv($envPath);
+
+// ----------------------------------------------------------------------------
+// 1. Secret üretimi
+// ----------------------------------------------------------------------------
+$updates = [];
+
+foreach (['APP_SECRET', 'TOKEN_SECRET'] as $key) {
+    $val = $env[$key] ?? '';
+    if (isSecretWeak($val)) {
+        $new = bin2hex(random_bytes(32));
+        $updates[$key] = $new;
+        echo "[+] {$key} üretildi (64 karakter).\n";
+    } else {
+        echo "[=] {$key} mevcut, dokunulmadı.\n";
+    }
+}
+
+foreach (['DB_PASS', 'MYSQL_ROOT_PASSWORD'] as $key) {
+    $val = $env[$key] ?? '';
+    if ($val === '' || strpos($val, 'CHANGE_ME') !== false) {
+        $new = randomPassword(32);
+        $updates[$key] = $new;
+        echo "[+] {$key} üretildi (32 karakter).\n";
+    } else {
+        echo "[=] {$key} mevcut, dokunulmadı.\n";
+    }
+}
+
+if ($updates) {
+    writeEnvUpdates($envPath, $updates);
+    $env = parseEnv($envPath);
+}
+
+if ($printSecretsOnly) {
+    echo "\n--- Üretilen değerler ---\n";
+    foreach ($updates as $k => $v) {
+        echo "{$k}={$v}\n";
+    }
+    exit(0);
+}
+
+// ----------------------------------------------------------------------------
+// 2. İlk admin parolası
+// ----------------------------------------------------------------------------
+echo "\n--- İlk admin kullanıcısı parolası ---\n";
+echo "Min 12 karakter, en az 1 büyük, 1 küçük, 1 rakam.\n";
+
+if (!isInteractive()) {
+    $pw = randomPassword(20);
+    echo "[!] TTY yok, rastgele admin parola üretildi:\n    {$pw}\n";
+} else {
+    while (true) {
+        $pw  = promptHidden('Admin parolası (gizli giriş): ');
+        $pw2 = promptHidden('Tekrar: ');
+        if ($pw !== $pw2) {
+            echo "[-] Parolalar uyuşmuyor, tekrar deneyin.\n";
+            continue;
+        }
+        $err = validatePassword($pw);
+        if ($err !== null) {
+            echo "[-] {$err}\n";
+            continue;
+        }
+        break;
+    }
+}
+
+$adminHash = password_hash($pw, PASSWORD_BCRYPT, ['cost' => 12]);
+file_put_contents(
+    $basePath . '/.install-admin.json',
+    json_encode(['username' => 'admin', 'password_hash' => $adminHash], JSON_PRETTY_PRINT)
+);
+chmod($basePath . '/.install-admin.json', 0600);
+echo "[+] Admin parolası hash'lendi. bin/migrate ilk çalıştırıldığında bu hash kullanılacak.\n";
+
+// ----------------------------------------------------------------------------
+// 3. Demo seed
+// ----------------------------------------------------------------------------
+$envValue = strtolower($env['APP_ENV'] ?? 'production');
+$seedFlag = strtolower($env['SEED_DEMO_DATA'] ?? 'false');
+
+if ($noDemo) {
+    if ($seedFlag === 'true') {
+        writeEnvUpdates($envPath, ['SEED_DEMO_DATA' => 'false']);
+        echo "[+] SEED_DEMO_DATA=false olarak ayarlandı (--no-demo).\n";
+    }
+    echo "\n[OK] Production-ready kurulum tamamlandı.\n";
+    exit(0);
+}
+
+if ($envValue === 'production') {
+    echo "\n[!] APP_ENV=production — demo veri YÜKLENMEYECEK.\n";
+    echo "[!] Demo istiyorsanız APP_ENV=development yapın ve bin/install tekrar çalıştırın.\n";
+    exit(0);
+}
+
+if ($seedFlag !== 'true') {
+    echo "\n[?] SEED_DEMO_DATA=false. Demo veri yüklensin mi? [y/N] ";
+    $ans = strtolower(trim((string) fgets(STDIN)));
+    if ($ans !== 'y') {
+        echo "[=] Demo atlandı.\n";
+        exit(0);
+    }
+    writeEnvUpdates($envPath, ['SEED_DEMO_DATA' => 'true']);
+}
+
+// Demo kullanıcılar için rastgele parolalar
+$demoUsers = [
+    'admin'    => ['role' => 'admin',         'name' => 'Sistem Yöneticisi'],
+    'divan'    => ['role' => 'divan_baskani', 'name' => 'Divan Başkanı'],
+    'gorevli1' => ['role' => 'gorevli',       'name' => 'Kayıt Görevlisi 1'],
+    'gorevli2' => ['role' => 'gorevli',       'name' => 'Kayıt Görevlisi 2'],
+];
+
+$demoOut = [];
+echo "\n--- Demo kullanıcı parolaları (yalnızca bu kurulumda görüntüleniyor) ---\n";
+echo str_repeat('-', 70) . "\n";
+echo str_pad('Kullanıcı', 14) . str_pad('Rol', 18) . "Parola\n";
+echo str_repeat('-', 70) . "\n";
+foreach ($demoUsers as $u => $info) {
+    $pw = randomPassword(16);
+    $demoOut[$u] = [
+        'role'          => $info['role'],
+        'name'          => $info['name'],
+        'password'      => $pw,
+        'password_hash' => password_hash($pw, PASSWORD_BCRYPT, ['cost' => 12]),
+    ];
+    echo str_pad($u, 14) . str_pad($info['role'], 18) . $pw . "\n";
+}
+echo str_repeat('-', 70) . "\n";
+echo "[!] Bu parolalar tek seferlik gösterilir. Lütfen güvenli bir yerde saklayın.\n";
+
+file_put_contents(
+    $basePath . '/.install-demo-users.json',
+    json_encode($demoOut, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+);
+chmod($basePath . '/.install-demo-users.json', 0600);
+echo "\n[+] bin/migrate çalıştırıldığında demo kullanıcılar bu parolalarla yüklenir.\n";
+echo "[OK] Kurulum tamamlandı.\n";
+
+// =============================================================================
+// Yardımcılar
+// =============================================================================
+
+function parseEnv(string $path): array
+{
+    $out = [];
+    if (!file_exists($path)) return $out;
+    foreach (file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        if (str_starts_with(trim($line), '#')) continue;
+        if (!str_contains($line, '=')) continue;
+        [$k, $v] = explode('=', $line, 2);
+        $out[trim($k)] = trim($v, " \"'");
+    }
+    return $out;
+}
+
+function writeEnvUpdates(string $path, array $updates): void
+{
+    $lines = file($path, FILE_IGNORE_NEW_LINES);
+    $seen = [];
+    foreach ($lines as $i => $line) {
+        if (str_starts_with(trim($line), '#') || !str_contains($line, '=')) continue;
+        $key = trim(explode('=', $line, 2)[0]);
+        if (isset($updates[$key])) {
+            $lines[$i] = "{$key}={$updates[$key]}";
+            $seen[$key] = true;
+        }
+    }
+    foreach ($updates as $k => $v) {
+        if (empty($seen[$k])) {
+            $lines[] = "{$k}={$v}";
+        }
+    }
+    file_put_contents($path, implode("\n", $lines) . "\n");
+    chmod($path, 0600);
+}
+
+function isSecretWeak(string $val): bool
+{
+    if ($val === '') return true;
+    if (strlen($val) < 32) return true;
+    $bad = ['default_secret', 'CHANGE_ME', 'password', 'secret', 'changeme'];
+    foreach ($bad as $b) {
+        if (stripos($val, $b) !== false) return true;
+    }
+    return false;
+}
+
+function randomPassword(int $len): string
+{
+    $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*';
+    $out = '';
+    $max = strlen($alphabet) - 1;
+    for ($i = 0; $i < $len; $i++) {
+        $out .= $alphabet[random_int(0, $max)];
+    }
+    return $out;
+}
+
+function validatePassword(string $pw): ?string
+{
+    if (strlen($pw) < 12) return 'En az 12 karakter olmalı.';
+    if (!preg_match('/[A-Z]/', $pw)) return 'En az 1 büyük harf gerekli.';
+    if (!preg_match('/[a-z]/', $pw)) return 'En az 1 küçük harf gerekli.';
+    if (!preg_match('/[0-9]/', $pw)) return 'En az 1 rakam gerekli.';
+    $blacklist = ['password', '123456', 'qwerty', 'admin', 'oyla', 'sifre', 'parola'];
+    $lower = strtolower($pw);
+    foreach ($blacklist as $b) {
+        if (str_contains($lower, $b)) return "Yaygın kelime içeriyor: \"{$b}\".";
+    }
+    return null;
+}
+
+function isInteractive(): bool
+{
+    if (!defined('STDIN')) return false;
+    return stream_isatty(STDIN);
+}
+
+function promptHidden(string $prompt): string
+{
+    echo $prompt;
+    if (PHP_OS_FAMILY === 'Windows') {
+        return trim((string) fgets(STDIN));
+    }
+    shell_exec('stty -echo 2>/dev/null');
+    $in = trim((string) fgets(STDIN));
+    shell_exec('stty echo 2>/dev/null');
+    echo "\n";
+    return $in;
+}

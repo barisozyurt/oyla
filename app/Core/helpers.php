@@ -12,17 +12,28 @@ function e(?string $value): string
 }
 
 /**
- * Return the URL for a public asset.
+ * Return the URL for a public asset with cache-busting query param.
  * Usage: <?= asset('css/app.css') ?>
+ *
+ * Eğer dosya disk'te varsa filemtime ile versiyon hash'i eklenir.
+ * Yoksa sadece path döner (test ortamı vs.).
  */
 function asset(string $path): string
 {
-    return '/assets/' . ltrim($path, '/');
+    $rel = '/assets/' . ltrim($path, '/');
+    $publicDir = defined('PUBLIC_PATH') ? PUBLIC_PATH : dirname(__DIR__, 2) . '/public';
+    $full = $publicDir . $rel;
+    if (is_file($full)) {
+        $mtime = filemtime($full);
+        if ($mtime !== false) {
+            return $rel . '?v=' . dechex($mtime);
+        }
+    }
+    return $rel;
 }
 
 /**
  * Check whether the current request URI matches a given path.
- * Useful for highlighting active nav items.
  */
 function isUrl(string $path): bool
 {
@@ -32,7 +43,6 @@ function isUrl(string $path): bool
 
 /**
  * Generate an HTML hidden input containing the CSRF token.
- * Intended for use directly inside view templates.
  */
 function csrf_field(): string
 {
@@ -40,6 +50,17 @@ function csrf_field(): string
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     }
     return '<input type="hidden" name="_csrf" value="' . e($_SESSION['csrf_token']) . '">';
+}
+
+/**
+ * Current CSRF token (for meta tag injection).
+ */
+function csrf_token(): string
+{
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
 }
 
 /**
@@ -52,11 +73,19 @@ function flash(string $key, string $message): void
 
 /**
  * Retrieve and remove a flash message from the session.
- * Returns null if no message exists for the given key.
  */
 function getFlash(string $key): ?string
 {
     $message = $_SESSION['flash'][$key] ?? null;
     unset($_SESSION['flash'][$key]);
     return $message;
+}
+
+/**
+ * Translate helper. __('vote.submit') veya __('Hello %s', $name).
+ * Bilinmeyen anahtar key olarak döner — i18n geçişi kademeli olur.
+ */
+function __(string $key, array $args = []): string
+{
+    return \App\Core\I18n::translate($key, $args);
 }

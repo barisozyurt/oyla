@@ -9,9 +9,17 @@ class Token extends Model
 {
     protected string $table = 'tokens';
 
+    /**
+     * FAZ 1 sonrası: plain artık DB'de yok. Lookup yalnızca hash üzerinden.
+     * Bu metod backwards-compatibility için bırakılmış ama her zaman null döner —
+     * çağıranlar TokenService::validate() kullanmalı.
+     *
+     * @deprecated
+     */
     public function findByPlain(string $tokenPlain): ?array
     {
-        return $this->findWhere('token_plain', $tokenPlain);
+        // Plain DB'de yok; çağıran TokenService kullanmalı.
+        return $this->findByHash(\App\Services\TokenService::hashToken($tokenPlain));
     }
 
     public function findByHash(string $tokenHash): ?array
@@ -21,7 +29,7 @@ class Token extends Model
 
     public function isValid(string $tokenPlain): bool
     {
-        $token = $this->findByPlain($tokenPlain);
+        $token = $this->findByHash(\App\Services\TokenService::hashToken($tokenPlain));
         if (!$token) return false;
         if ($token['used']) return false;
         if (strtotime($token['expires_at']) < time()) return false;

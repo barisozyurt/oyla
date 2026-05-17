@@ -1,0 +1,195 @@
+#!/usr/bin/env php
+<?php
+/**
+ * Oyla — migration runner.
+ *
+ * - database/migrations/ altındaki .sql dosyalarını sırayla çalıştırır.
+ * - schema_migrations tablosunda hangi dosyanın çalıştığını takip eder.
+ * - bin/install tarafından üretilen .install-admin.json ve .install-demo-users.json
+ *   varsa, son aşamada kullanıcı kayıtlarını ekler (idempotent).
+ *
+ * Kullanım:
+ *   bin/migrate                 # tüm pending migration'ları çalıştır
+ *   bin/migrate --status        # hangi migration'lar uygulandı listele
+ *   bin/migrate --rollback      # son uygulanan migration'ı geri al (varsa _down.sql)
+ *   bin/migrate --fresh         # TÜM tabloları sil ve sıfırdan kur (development only)
+ */
+
+declare(strict_types=1);
+
+require dirname(__DIR__) . '/vendor/autoload.php';
+
+use App\Core\Config;
+use App\Core\Logger;
+
+// .env yükle
+$basePath = dirname(__DIR__);
+if (file_exists($basePath . '/.env')) {
+    $dotenv = Dotenv\Dotenv::createImmutable($basePath);
+    $dotenv->safeLoad();
+}
+
+$migrationsDir = $basePath . '/database/migrations';
+$status     = in_array('--status', $argv, true);
+$rollback   = in_array('--rollback', $argv, true);
+$fresh      = in_array('--fresh', $argv, true);
+
+$dsn = sprintf(
+    'mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
+    $_ENV['DB_HOST'] ?? '127.0.0.1',
+    $_ENV['DB_PORT'] ?? '3306',
+    $_ENV['DB_NAME'] ?? 'oyla'
+);
+
+try {
+    $pdo = new PDO($dsn, $_ENV['DB_USER'] ?? 'root', $_ENV['DB_PASS'] ?? '', [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    ]);
+} catch (PDOException $e) {
+    fwrite(STDERR, "[-] Veritabanı bağlantısı: " . $e->getMessage() . "\n");
+    exit(1);
+}
+
+// schema_migrations tablosu (her zaman önce)
+$pdo->exec("CREATE TABLE IF NOT EXISTS schema_migrations (
+    migration VARCHAR(255) PRIMARY KEY,
+    applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+if ($fresh) {
+    if ((Config::env() !== 'development') && (Config::env() !== 'testing')) {
+        fwrite(STDERR, "[-] --fresh yalnızca development/testing'de çalışır.\n");
+        exit(1);
+    }
+    echo "[!] TÜM TABLOLAR SİLİNECEK. Devam etmek için 'yes' yazın: ";
+    if (trim((string) fgets(STDIN)) !== 'yes') {
+        echo "İptal.\n";
+        exit(0);
+    }
+    $stmt = $pdo->query("SHOW TABLES");
+    $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $pdo->exec("SET FOREIGN_KEY_CHECKS=0");
+    foreach ($tables as $t) {
+        $pdo->exec("DROP TABLE IF EXISTS `{$t}`");
+    }
+    $pdo->exec("SET FOREIGN_KEY_CHECKS=1");
+    echo "[+] " . count($tables) . " tablo silindi. Şimdi migration'lar uygulanıyor...\n";
+    $pdo->exec("CREATE TABLE schema_migrations (
+        migration VARCHAR(255) PRIMARY KEY,
+        applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+}
+
+$applied = $pdo->query("SELECT migration FROM schema_migrations")->fetchAll(PDO::FETCH_COLUMN);
+$appliedSet = array_flip($applied);
+
+if ($status) {
+    echo "Uygulanan migration'lar:\n";
+    foreach ($applied as $m) echo "  ✓ {$m}\n";
+    $files = collectMigrations($migrationsDir);
+    $pending = array_diff($files, $applied);
+    echo "\nBekleyen:\n";
+    if (!$pending) echo "  (yok)\n";
+    foreach ($pending as $m) echo "  ⋯ {$m}\n";
+    exit(0);
+}
+
+if ($rollback) {
+    if (!$applied) { echo "[=] Geri alınacak migration yok.\n"; exit(0); }
+    $last = end($applied);
+    $down = $migrationsDir . '/' . str_replace('.sql', '_down.sql', $last);
+    if (!file_exists($down)) {
+        fwrite(STDERR, "[-] Down migration bulunamadı: {$down}\n");
+        exit(1);
+    }
+    echo "[~] Geri alınıyor: {$last}\n";
+    $pdo->exec(file_get_contents($down));
+    $pdo->prepare("DELETE FROM schema_migrations WHERE migration = ?")->execute([$last]);
+    echo "[+] {$last} geri alındı.\n";
+    exit(0);
+}
+
+// Pending migration'ları uygula
+$files = collectMigrations($migrationsDir);
+$count = 0;
+foreach ($files as $file) {
+    if (isset($appliedSet[$file])) continue;
+    if (str_ends_with($file, '_down.sql')) continue;
+
+    $path = $migrationsDir . '/' . $file;
+    echo "[~] Uygulanıyor: {$file}\n";
+    try {
+        $pdo->exec(file_get_contents($path));
+        $pdo->prepare("INSERT INTO schema_migrations (migration) VALUES (?)")->execute([$file]);
+        $count++;
+        echo "    ✓\n";
+    } catch (PDOException $e) {
+        fwrite(STDERR, "[-] {$file} başarısız: " . $e->getMessage() . "\n");
+        exit(1);
+    }
+}
+
+echo "[+] {$count} migration uygulandı.\n";
+
+// İlk admin ve demo kullanıcıları yükle
+loadInstallUsers($pdo, $basePath);
+
+echo "[OK] Migration tamamlandı.\n";
+
+// =============================================================================
+function collectMigrations(string $dir): array
+{
+    $files = array_filter(scandir($dir) ?: [], fn($f) => str_ends_with($f, '.sql') && !str_ends_with($f, '_down.sql'));
+    sort($files);
+    return array_values($files);
+}
+
+function loadInstallUsers(PDO $pdo, string $basePath): void
+{
+    // bin/install tarafından üretilen .install-admin.json
+    $adminFile = $basePath . '/.install-admin.json';
+    if (file_exists($adminFile)) {
+        $admin = json_decode(file_get_contents($adminFile), true);
+        if ($admin && !empty($admin['password_hash'])) {
+            $stmt = $pdo->prepare(
+                "INSERT INTO users (username, password_hash, role, name, is_active)
+                 VALUES (?, ?, 'admin', 'Sistem Yöneticisi', 1)
+                 ON DUPLICATE KEY UPDATE password_hash = VALUES(password_hash)"
+            );
+            $stmt->execute([$admin['username'], $admin['password_hash']]);
+            echo "[+] Admin kullanıcı yüklendi: {$admin['username']}\n";
+            @unlink($adminFile); // bir kez yüklensin yeter
+        }
+    }
+
+    // Demo kullanıcılar
+    $demoFile = $basePath . '/.install-demo-users.json';
+    if (file_exists($demoFile) && (($_ENV['SEED_DEMO_DATA'] ?? 'false') === 'true')) {
+        // Önce demo seçimi yükle (eğer yoksa)
+        $demoSql = $basePath . '/database/seeds/demo_data.sql';
+        if (file_exists($demoSql)) {
+            // demo_data.sql artık user INSERT'leri içermez — sadece election/members/ballots/candidates
+            try {
+                $pdo->exec(file_get_contents($demoSql));
+                echo "[+] Demo verisi yüklendi (election + members + ballots + candidates).\n";
+            } catch (PDOException $e) {
+                // PK çakışması yoksay
+                if ($e->getCode() !== '23000') throw $e;
+                echo "[=] Demo verisi zaten mevcut.\n";
+            }
+        }
+
+        $demoUsers = json_decode(file_get_contents($demoFile), true);
+        foreach ($demoUsers as $username => $info) {
+            $electionId = ($info['role'] === 'admin') ? null : 1;
+            $stmt = $pdo->prepare(
+                "INSERT INTO users (election_id, username, password_hash, role, name, is_active)
+                 VALUES (?, ?, ?, ?, ?, 1)
+                 ON DUPLICATE KEY UPDATE password_hash = VALUES(password_hash)"
+            );
+            $stmt->execute([$electionId, $username, $info['password_hash'], $info['role'], $info['name']]);
+        }
+        echo "[+] " . count($demoUsers) . " demo kullanıcı yüklendi.\n";
+        @unlink($demoFile);
+    }
+}

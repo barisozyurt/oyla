@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Models;
@@ -11,15 +12,19 @@ class Vote extends Model
 
     /**
      * Cast a vote. NO member_id parameter — anonymity guarantee.
+     *
+     * Salt ve crypto_version artık DB'de saklanır — ileride yeniden doğrulama yapılabilsin.
      */
-    public function castVote(int $electionId, int $ballotId, string $tokenHash, array $candidateIds, string $commitmentHash): int
+    public function castVote(int $electionId, int $ballotId, string $tokenHash, array $candidateIds, string $commitmentHash, string $salt = '', string $cryptoVersion = 'v1'): int
     {
         return $this->create([
-            'election_id' => $electionId,
-            'ballot_id' => $ballotId,
-            'token_hash' => $tokenHash,
+            'election_id'      => $electionId,
+            'ballot_id'        => $ballotId,
+            'token_hash'       => $tokenHash,
             'encrypted_choice' => json_encode($candidateIds),
-            'commitment_hash' => $commitmentHash,
+            'commitment_hash'  => $commitmentHash,
+            'salt'             => $salt,
+            'crypto_version'   => $cryptoVersion,
         ]);
     }
 
@@ -28,9 +33,6 @@ class Vote extends Model
         return $this->count('ballot_id = ?', [$ballotId]);
     }
 
-    /**
-     * Get vote counts per candidate for a ballot using JSON_CONTAINS.
-     */
     public function resultsByBallot(int $ballotId): array
     {
         $stmt = $this->db->prepare(
@@ -47,9 +49,6 @@ class Vote extends Model
         return $stmt->fetchAll();
     }
 
-    /**
-     * Get all commitment hashes for an election (for transparency/export).
-     */
     public function allHashes(int $electionId): array
     {
         $stmt = $this->db->prepare(

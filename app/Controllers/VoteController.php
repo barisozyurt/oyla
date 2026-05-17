@@ -1,10 +1,13 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Controllers;
 
 use App\Core\Controller;
 use App\Core\Database;
+use App\Core\Logger;
+use App\Core\RateLimiter;
 use App\Core\View;
 use App\Models\{Token, Vote, Ballot, Candidate, Receipt, Election, Member};
 use App\Services\{CryptoService, TokenService, SmsService, ActivityLogService};
@@ -30,10 +33,8 @@ class VoteController extends Controller
 
         $ballotModel = new Ballot();
         $candidateModel = new Candidate();
-        $ballots = $ballotModel->byElection($election['id']);
-        foreach ($ballots as &$ballot) {
-            $ballot['candidates'] = $candidateModel->byBallot($ballot['id']);
-        }
+        // FAZ 2: eager-load — tek query'de tüm ballot+candidate'ler
+        $ballots = $this->loadBallotsWithCandidates($ballotModel, $candidateModel, (int) $election['id']);
 
         View::layout('fullscreen', 'oylama/show', [
             'token'      => $token,
@@ -48,6 +49,12 @@ class VoteController extends Controller
     {
         $this->verifyCsrf();
 
+        // Oy submit rate limit (IP başına 10/dk)
+        if (!RateLimiter::check('vote')) {
+            View::layout('fullscreen', 'oylama/expired', ['reason' => 'rate_limited']);
+            return;
+        }
+
         $tokenService = new TokenService();
         $tokenData = $tokenService->validate($token);
 
@@ -56,13 +63,12 @@ class VoteController extends Controller
             return;
         }
 
-        $electionId = $tokenData['election_id'];
+        $electionId = (int) $tokenData['election_id'];
         $tokenHash  = $tokenData['token_hash'];
 
-        // Validate selections per ballot
         $ballotModel    = new Ballot();
         $candidateModel = new Candidate();
-        $ballots        = $ballotModel->byElection($electionId);
+        $ballots        = $this->loadBallotsWithCandidates($ballotModel, $candidateModel, $electionId);
         $allSelections  = [];
 
         foreach ($ballots as $ballot) {
@@ -73,15 +79,14 @@ class VoteController extends Controller
             }
             $selected = array_map('intval', $selected);
 
-            // Quota check
+            // Kota
             if (count($selected) > (int) $ballot['quota']) {
                 View::layout('fullscreen', 'oylama/expired', ['reason' => 'quota_exceeded']);
                 return;
             }
 
-            // Validate candidate IDs belong to this ballot
-            $validCandidates = $candidateModel->byBallot($ballot['id']);
-            $validIds        = array_map(fn($c) => (int) $c['id'], $validCandidates);
+            // Aday geçerliliği
+            $validIds = array_map(fn($c) => (int) $c['id'], $ballot['candidates']);
             foreach ($selected as $candidateId) {
                 if (!in_array($candidateId, $validIds, true)) {
                     View::layout('fullscreen', 'oylama/expired', ['reason' => 'invalid_candidate']);
@@ -89,14 +94,26 @@ class VoteController extends Controller
                 }
             }
 
+            // Aynı adayın 2 kez seçilmesini engelle
+            if (count($selected) !== count(array_unique($selected))) {
+                View::layout('fullscreen', 'oylama/expired', ['reason' => 'invalid_candidate']);
+                return;
+            }
+
             $allSelections[$ballot['id']] = $selected;
         }
 
-        // ATOMIC: vote insert + token burn in same transaction
         $db = Database::getInstance();
         $db->beginTransaction();
 
         try {
+            // Token burn atomic — race condition'a karşı önce burn dene
+            if (!$tokenService->burnAtomic($tokenHash)) {
+                $db->rollBack();
+                View::layout('fullscreen', 'oylama/expired', ['reason' => 'already_voted']);
+                return;
+            }
+
             $voteModel            = new Vote();
             $allCommitmentHashes  = [];
 
@@ -106,33 +123,34 @@ class VoteController extends Controller
                 $commitmentHash = CryptoService::commitmentHash($choiceJson, $salt, $token);
 
                 // INSERT INTO votes — NO member_id!
-                $voteModel->castVote($electionId, $ballotId, $tokenHash, $candidateIds, $commitmentHash);
+                $voteModel->castVote($electionId, (int) $ballotId, $tokenHash, $candidateIds, $commitmentHash, $salt, CryptoService::VERSION);
                 $allCommitmentHashes[] = $commitmentHash;
             }
 
-            // Burn token
-            $tokenService->burn($tokenHash);
-
-            // Generate receipt with combined commitment hash
-            $publicCode   = strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
-            $combinedHash = hash('sha256', implode('', $allCommitmentHashes));
+            // Makbuz kodu + combined HMAC bağlantısı
+            $publicCode  = strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
+            $combinedHash = CryptoService::combinedCommitment($allCommitmentHashes, $token);
 
             $receiptModel = new Receipt();
             $receiptModel->create([
                 'election_id'     => $electionId,
                 'public_code'     => $publicCode,
                 'commitment_hash' => $combinedHash,
+                'crypto_version'  => CryptoService::VERSION,
             ]);
 
             $db->commit();
+            RateLimiter::recordSuccess('vote');
 
-            // Send receipt SMS (read member phone via token — this is acceptable;
-            // we read tokens table for phone lookup, NOT joining with votes)
+            // Makbuz SMS — telefon lookup yalnızca tokens üzerinden, votes'a dokunmadan
             $memberModel = new Member();
             $member      = $memberModel->find($tokenData['member_id']);
-            if ($member && $member['phone']) {
+            if ($member && !empty($member['phone'])) {
                 $sms = new SmsService();
-                $sms->send($member['phone'], "Oyla makbuz kodunuz: {$publicCode}");
+                $sms->send(
+                    $member['phone'],
+                    "Oyla makbuz kodunuz: {$publicCode} — Doğrulama: /oy/dogrula"
+                );
             }
 
             ActivityLogService::log('vote_cast', "Oy kullanıldı. Makbuz: {$publicCode}", $electionId);
@@ -143,6 +161,7 @@ class VoteController extends Controller
 
         } catch (\Throwable $e) {
             $db->rollBack();
+            Logger::error('Oy verme hatası', ['err' => $e->getMessage(), 'token_hash' => Logger::maskToken($tokenHash)]);
             ActivityLogService::log('vote_error', $e->getMessage(), $electionId);
             View::layout('fullscreen', 'oylama/expired', ['reason' => 'system_error']);
         }
@@ -159,7 +178,7 @@ class VoteController extends Controller
     public function verifyCheck(): void
     {
         $this->verifyCsrf();
-        $code = strtoupper(trim($this->input('code', '')));
+        $code = strtoupper(trim((string) $this->input('code', '')));
 
         $receiptModel = new Receipt();
         $receipt      = $receiptModel->findByCode($code);
@@ -170,5 +189,32 @@ class VoteController extends Controller
             'found'    => $receipt !== null,
             'searched' => true,
         ]);
+    }
+
+    /**
+     * Eager-load ballot+candidate'ler — eskiden ballot başına ayrı query (N+1).
+     * Şimdi tek query + memory'de grupla.
+     */
+    private function loadBallotsWithCandidates(Ballot $ballotModel, Candidate $candidateModel, int $electionId): array
+    {
+        $ballots = $ballotModel->byElection($electionId);
+        if (!$ballots) return [];
+
+        $ballotIds = array_map(fn($b) => (int) $b['id'], $ballots);
+        $placeholders = implode(',', array_fill(0, count($ballotIds), '?'));
+        $stmt = $candidateModel->db()->prepare(
+            "SELECT * FROM candidates WHERE ballot_id IN ({$placeholders}) ORDER BY ballot_id, sort_order, id"
+        );
+        $stmt->execute($ballotIds);
+        $allCandidates = $stmt->fetchAll();
+
+        $byBallot = [];
+        foreach ($allCandidates as $c) {
+            $byBallot[(int) $c['ballot_id']][] = $c;
+        }
+        foreach ($ballots as &$b) {
+            $b['candidates'] = $byBallot[(int) $b['id']] ?? [];
+        }
+        return $ballots;
     }
 }

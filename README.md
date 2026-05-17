@@ -204,23 +204,38 @@ Test:         PHPUnit 10.5
 
 ## Kurulum
 
+### Geliştirme
+
 ```bash
 git clone https://github.com/barisozyurt/oyla.git
 cd oyla
-cp .env.example .env        # Düzenle: DB_PASS, TOKEN_SECRET, APP_SECRET
-docker-compose up -d
-docker-compose exec php composer install
+cp .env.example .env
+bin/install                       # Etkileşimli kurulum: secret üretir, parola sorar
+docker compose up -d
+docker compose exec php composer install
+docker compose exec php bin/migrate
 ```
 
-Tarayıcıda `http://localhost` açın. Demo giriş bilgileri:
+İlk kurulumda `bin/install`:
 
-| Rol | Kullanıcı | Şifre |
-|-----|-----------|-------|
-| Admin | `admin` | `password` |
-| Divan | `divan` | `password` |
-| Görevli | `gorevli1` | `password` |
+1. `APP_SECRET` ve `TOKEN_SECRET` için 64 karakterlik kriptografik rastgele değer üretir.
+2. Veritabanı parolaları için güçlü rastgele değer önerir (kullanıcı onaylayarak `.env`'e yazılır).
+3. İlk admin kullanıcısının parolasını **etkileşimli** sorar — min. 12 karakter, sözlük kontrolü.
+4. `SEED_DEMO_DATA=true` ise (sadece development) örnek üye/kurul/aday yükler. Demo
+   kullanıcıların **parolaları rastgele üretilip ekrana** yazılır; hiçbir yerde sabit "password" yoktur.
 
-> Demo şifreleri yalnızca geliştirme içindir. Production'da mutlaka değiştirin.
+### Production
+
+```bash
+cp .env.example .env              # Düzenle: APP_ENV=production, APP_DEBUG=false
+bin/install --no-demo             # Demo verisi olmadan, secret'ları üret
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+docker compose exec php composer install --no-dev --optimize-autoloader
+docker compose exec php bin/migrate
+```
+
+> Production'da `SEED_DEMO_DATA` mutlaka `false` olmalı. `bin/install --no-demo` bunu zorlar.
+> Demo şifreleri ne README'de ne kodda **yoktur** — `bin/install` her kurulumda yeni parola üretir.
 
 ---
 
@@ -270,9 +285,13 @@ oyla/
 - [x] Test modu (8 sistem kontrolü, sanal seçim simülasyonu)
 - [x] PDF tutanak üretimi
 - [x] UI/UX tasarımı (Source Sans 3, Oyla yeşili, mobil uyumlu)
-- [ ] Gerçek ortam testi ve hata düzeltmeleri
-- [ ] Netgsm canlı SMS entegrasyonu
-- [ ] Güvenlik denetimi
+- [x] FAZ 0 — Acil güvenlik sertleştirmesi (secret validation, HTTPS-aware session, security headers, OPcache, parola politikası, demo cred sökülmesi)
+- [x] FAZ 1 — Güvenlik temeli (token hash-only, DB-backed rate limit, HMAC commitment, tamper-evident audit log, middleware pipeline)
+- [x] FAZ 2 — Mimari (structured logging, migration runner, repository pattern, pagination, indexler, healthcheck, CI)
+- [x] FAZ 3 — UX/a11y (WCAG AA, error sayfaları, CSS modülerlik, viewport-fit, token süre uyarısı)
+- [x] FAZ 4 — i18n, makbuz doğrulama, KVKK retention
+- [ ] Gerçek ortam testi ve üçüncü taraf pentest
+- [ ] Netgsm canlı SMS entegrasyonu sahası
 - [ ] v1.0 kararlı sürüm
 
 ---

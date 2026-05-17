@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Core\Logger;
 use App\Core\Middleware;
+use App\Core\RateLimiter;
 use App\Models\Election;
 use App\Models\Member;
 use App\Models\Token;
@@ -19,12 +21,13 @@ use App\Services\TokenService;
  *
  * KURAL: Görevli, üyenin oyunun içeriğini HİÇBİR ZAMAN göremez.
  * Yalnızca üye durumu (waiting/signed/done) ve token kullanım bilgisi görünür.
+ *
+ * FAZ 1 değişikliği:
+ *  - Token plain DB'de tutulmadığı için "mevcut tokenı yeniden kullan" akışı kaldırıldı.
+ *  - Yeni token üretildiğinde varsa eski (kullanılmamış) token burn edilir.
  */
 class GorevliController extends Controller
 {
-    /**
-     * Görevli masası ana sayfası.
-     */
     public function index(): void
     {
         $user = Middleware::requireAuth('admin', 'gorevli');
@@ -36,10 +39,10 @@ class GorevliController extends Controller
         $members     = $electionId ? $memberModel->byElection($electionId) : [];
 
         $stats = [
-            'total'  => count($members),
+            'total'   => count($members),
             'waiting' => $electionId ? $memberModel->countByStatus($electionId, 'waiting') : 0,
             'signed'  => $electionId ? $memberModel->countByStatus($electionId, 'signed')  : 0,
-            'done'    => $electionId ? $memberModel->countByStatus($electionId, 'done')     : 0,
+            'done'    => $electionId ? $memberModel->countByStatus($electionId, 'done')    : 0,
         ];
 
         $this->layout('main', 'gorevli.index', [
@@ -52,14 +55,15 @@ class GorevliController extends Controller
         ]);
     }
 
-    /**
-     * TC kimlik / sicil no / isim araması.
-     * Dönen üye verisinde hassas alanlar maskelenir.
-     */
     public function search(): void
     {
         Middleware::requireAuth('admin', 'gorevli');
         $this->verifyCsrf();
+
+        if (!RateLimiter::check('search')) {
+            $this->json(['error' => 'Çok fazla arama. Lütfen biraz bekleyin.'], 429);
+            return;
+        }
 
         $electionId = $this->currentElectionId();
         if (!$electionId) {
@@ -67,15 +71,13 @@ class GorevliController extends Controller
             return;
         }
 
-        $query = trim($this->input('query', ''));
+        $query = trim((string) $this->input('query', ''));
         if ($query === '') {
             $this->json(['error' => 'Arama terimi gerekli'], 400);
             return;
         }
 
         $memberModel = new Member();
-
-        // TC tam eşleşme → sicil tam eşleşme → isim arama
         $member = $memberModel->findByTc($electionId, $query)
             ?? $memberModel->findBySicil($electionId, $query);
 
@@ -89,14 +91,12 @@ class GorevliController extends Controller
             return;
         }
 
-        // Token durumu — sadece used/expires bilgisi, oy içeriği değil
         $tokenModel     = new Token();
         $token          = $tokenModel->byMember((int) $member['id']);
         $hasActiveToken = $token
             && !(bool) $token['used']
             && strtotime($token['expires_at']) > time();
 
-        // TC maskeleme: 12345678901 → 123****01
         $tcMasked = null;
         if (!empty($member['tc_kimlik'])) {
             $tc = $member['tc_kimlik'];
@@ -110,9 +110,7 @@ class GorevliController extends Controller
                 'name'            => $member['name'],
                 'tc_kimlik'       => $tcMasked,
                 'sicil_no'        => $member['sicil_no'],
-                'phone'           => $member['phone']
-                    ? preg_replace('/(\d{4})\d{3}(\d{4})/', '$1***$2', $member['phone'])
-                    : null,
+                'phone'           => Logger::maskPhone($member['phone'] ?? null),
                 'photo_path'      => $member['photo_path'],
                 'status'          => $member['status'],
                 'has_active_token' => $hasActiveToken,
@@ -120,9 +118,6 @@ class GorevliController extends Controller
         ]);
     }
 
-    /**
-     * 1. imza: kimlik doğrulandı, üye status → signed.
-     */
     public function firstSign(string $id): void
     {
         Middleware::requireAuth('admin', 'gorevli');
@@ -154,9 +149,6 @@ class GorevliController extends Controller
         $this->json(['success' => true, 'status' => 'signed']);
     }
 
-    /**
-     * Token üret + SMS gönder + QR kod döndür.
-     */
     public function generateToken(string $id): void
     {
         Middleware::requireAuth('admin', 'gorevli');
@@ -182,42 +174,35 @@ class GorevliController extends Controller
             return;
         }
 
-        // Daha önce geçerli token varsa yenisini üretme
+        // Eski kullanılmamış token varsa burn et — yeni üretim daima yapılır
+        $tokenSvc       = new TokenService();
         $tokenModel     = new Token();
         $existingToken  = $tokenModel->byMember((int) $id);
         if ($existingToken && !(bool) $existingToken['used'] && strtotime($existingToken['expires_at']) > time()) {
-            // Mevcut token hâlâ geçerli — aynı URL'yi döndür
-            $appUrl  = rtrim($_ENV['APP_URL'] ?? 'http://localhost', '/');
-            $voteUrl = $appUrl . '/oy/' . $existingToken['token_plain'];
-            $qrDataUri = QrService::generate($voteUrl);
-
-            $this->json([
-                'success'    => true,
-                'vote_url'   => $voteUrl,
-                'qr_data_uri' => $qrDataUri,
-                'expires_at' => $existingToken['expires_at'],
-                'reused'     => true,
+            $tokenSvc->burnAtomic($existingToken['token_hash']);
+            Logger::info('Önceki token burn edildi (yeniden üretim)', [
+                'member_id' => $member['id'],
+                'token'     => Logger::maskToken($existingToken['token_hash']),
             ]);
-            return;
         }
 
-        // Yeni token üret
-        $tokenService = new TokenService();
-        $tokenData    = $tokenService->generate($electionId, (int) $id);
+        // Yeni token
+        $tokenData = $tokenSvc->generate($electionId, (int) $id);
 
         $appUrl  = rtrim($_ENV['APP_URL'] ?? 'http://localhost', '/');
         $voteUrl = $appUrl . '/oy/' . $tokenData['plain'];
-
-        // QR kod (data URI)
         $qrDataUri = QrService::generate($voteUrl);
 
-        // SMS gönder (telefon varsa)
+        // SMS gönder (telefon varsa) — rate limited
         if (!empty($member['phone'])) {
-            $sms = new SmsService();
-            $sms->send(
-                $member['phone'],
-                "Oyla oy kullanma bağlantınız: {$voteUrl} — Geçerlilik: 2 saat"
-            );
+            $rateOk = RateLimiter::check('sms');
+            if ($rateOk) {
+                $sms = new SmsService();
+                $sms->send(
+                    $member['phone'],
+                    "Oyla oy kullanma bağlantınız: {$voteUrl} — Geçerlilik: 2 saat"
+                );
+            }
         }
 
         $user = $this->currentUser();
@@ -236,10 +221,6 @@ class GorevliController extends Controller
         ]);
     }
 
-    /**
-     * Oy kullanım durumu sorgula (polling endpoint).
-     * KURAL: Sadece token.used kontrolü — oy içeriği asla görünmez.
-     */
     public function checkVoteStatus(string $id): void
     {
         Middleware::requireAuth('admin', 'gorevli');
@@ -263,9 +244,6 @@ class GorevliController extends Controller
         ]);
     }
 
-    /**
-     * 2. imza: oy kullanıldı, işlem tamamlandı → status → done.
-     */
     public function secondSign(string $id): void
     {
         Middleware::requireAuth('admin', 'gorevli');
@@ -297,10 +275,6 @@ class GorevliController extends Controller
         $this->json(['success' => true, 'status' => 'done']);
     }
 
-    /**
-     * Üye listesi (sidebar polling için JSON endpoint).
-     * Yalnızca id, isim, sicil ve status döner — oy bilgisi yok.
-     */
     public function memberList(): void
     {
         Middleware::requireAuth('admin', 'gorevli');
@@ -317,7 +291,6 @@ class GorevliController extends Controller
             );
         }
 
-        // Return only the fields the desk UI needs — no vote content
         $rows = array_map(fn($m) => [
             'id'       => $m['id'],
             'name'     => $m['name'],
