@@ -154,13 +154,7 @@
 
     <aside class="auth-shell__left" aria-hidden="true">
         <div class="auth-shell__brand">
-            <span aria-hidden="true">
-                <?php @readfile(PUBLIC_PATH . '/assets/img/logo-mono.svg'); ?>
-            </span>
-            <span>
-                <span class="auth-shell__brand__name">Oyla</span>
-                <span class="auth-shell__brand__tag">Dernek Seçim Sistemi</span>
-            </span>
+            <img src="<?= asset('img/logo-dark.svg') ?>" alt="" height="48" style="display:block">
         </div>
 
         <div class="auth-shell__lead">
@@ -191,8 +185,7 @@
     <main class="auth-shell__right" role="main">
         <div class="auth-form">
             <div class="auth-form__brand-mobile">
-                <span aria-hidden="true"><?php @readfile(PUBLIC_PATH . '/assets/img/logo.svg'); ?></span>
-                <span class="ds-font-serif ds-font-bold ds-text-xl">Oyla</span>
+                <img src="<?= asset('img/logo.svg') ?>" alt="Oyla" height="40">
             </div>
 
             <?php

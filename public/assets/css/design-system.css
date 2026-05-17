@@ -313,6 +313,7 @@ hr.ds-rule::after {
     width: 32px;
     height: 32px;
     flex-shrink: 0;
+    display: block;
 }
 .ds-nav__brand__name {
     font-family: var(--font-serif);
