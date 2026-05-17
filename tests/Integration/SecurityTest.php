@@ -104,20 +104,23 @@ class SecurityTest extends TestCase
     {
         $_SESSION = [];
 
-        // 5 attempt = sınırın altı ya da tam sınır
+        // Her test çağrısında benzersiz key — DB-backed mode'da cross-test
+        // kirlenmeyi önler. ENDPOINTS map'inde yoksa override edilen 5/300 değerleri kullanılır.
+        $key = 'sec_' . bin2hex(random_bytes(4));
+        \App\Core\RateLimiter::reset($key);
+
+        // 5 attempt — tam sınıra geliyor (her biri true dönmeli)
         for ($i = 0; $i < 5; $i++) {
-            $this->assertTrue(\App\Core\RateLimiter::check('test_security_' . uniqid(), 5, 300));
+            $this->assertTrue(\App\Core\RateLimiter::check($key, 5, 300), "attempt #{$i} should be allowed");
         }
 
-        // Aynı key ile 6. başarısız olmalı (DB yoksa session fallback'e düşer)
-        $key = 'test_security_block';
-        for ($i = 0; $i < 5; $i++) {
-            \App\Core\RateLimiter::check($key, 5, 300);
-        }
+        // 6. false dönmeli
         $this->assertFalse(\App\Core\RateLimiter::check($key, 5, 300));
 
         \App\Core\RateLimiter::reset($key);
         $this->assertTrue(\App\Core\RateLimiter::check($key, 5, 300));
+
+        \App\Core\RateLimiter::reset($key);
     }
 
     public function test_config_secret_rejects_placeholder(): void
