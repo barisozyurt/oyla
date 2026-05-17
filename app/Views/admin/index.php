@@ -1,214 +1,132 @@
 <?php
 /**
  * Admin Paneli — Genel Bakış
- *
- * Değişkenler:
- *   $totalElections  int
- *   $totalUsers      int
- *   $totalMembers    int
- *   $totalVotes      int
- *   $currentElection array|null
  */
 
-$statusMap = [
-    'draft'  => ['label' => 'Taslak',  'class' => 'bg-secondary'],
-    'test'   => ['label' => 'Test',     'class' => 'bg-warning text-dark'],
-    'open'   => ['label' => 'Açık',     'class' => 'bg-success'],
-    'closed' => ['label' => 'Kapalı',   'class' => 'bg-danger'],
+$statusMeta = [
+    'draft'  => ['label' => 'Taslak',         'class' => 'ds-badge--neutral'],
+    'test'   => ['label' => 'Test',           'class' => 'ds-badge--warn'],
+    'open'   => ['label' => 'Açık',           'class' => 'ds-badge--ink ds-badge--live'],
+    'closed' => ['label' => 'Kapandı',        'class' => 'ds-badge--brass'],
 ];
+$badge = $currentElection
+    ? ($statusMeta[$currentElection['status']] ?? ['label' => $currentElection['status'], 'class' => 'ds-badge--neutral'])
+    : null;
 ?>
 
-<!-- Sayfa başlığı -->
-<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
-    <div>
-        <h1 class="h3 mb-1 fw-bold">
-            <i class="bi bi-shield-lock-fill text-primary me-2"></i>Yönetim Paneli
-        </h1>
-        <p class="text-muted mb-0">Sistem yöneticisi genel bakışı</p>
+<header class="ds-page-header">
+    <div class="ds-page-header__row">
+        <div>
+            <p class="ds-page-header__eyebrow">Genel Bakış</p>
+            <h1 class="ds-page-header__title">Yönetim Paneli</h1>
+            <p class="ds-page-header__lead">Sistem yöneticisi olarak tüm seçimleri, kullanıcıları ve sistem sağlığını buradan izleyin.</p>
+        </div>
+        <?php if ($currentElection && $badge): ?>
+        <div class="ds-flex ds-gap-3 ds-items-center">
+            <span class="ds-badge <?= $badge['class'] ?>"><?= e($badge['label']) ?></span>
+        </div>
+        <?php endif; ?>
     </div>
-    <?php if ($currentElection): ?>
-    <?php $si = $statusMap[$currentElection['status']] ?? ['label' => $currentElection['status'], 'class' => 'bg-secondary']; ?>
-    <span class="badge <?= $si['class'] ?> fs-6 px-3 py-2">
-        <i class="bi bi-circle-fill me-1" style="font-size:.6rem"></i><?= $si['label'] ?>
-    </span>
-    <?php endif; ?>
-</div>
+</header>
 
-<!-- İstatistik kartları -->
-<div class="row g-3 mb-4">
-    <div class="col-6 col-lg-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-4">
-                <div class="fs-1 fw-bold text-primary"><?= (int) $totalElections ?></div>
-                <div class="text-muted small mt-1">
-                    <i class="bi bi-calendar-event me-1"></i>Seçimler
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-lg-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-4">
-                <div class="fs-1 fw-bold text-success"><?= (int) $totalUsers ?></div>
-                <div class="text-muted small mt-1">
-                    <i class="bi bi-person-gear me-1"></i>Kullanıcılar
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-lg-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-4">
-                <div class="fs-1 fw-bold text-info"><?= (int) $totalMembers ?></div>
-                <div class="text-muted small mt-1">
-                    <i class="bi bi-people me-1"></i>Üyeler
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-lg-3">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center py-4">
-                <div class="fs-1 fw-bold text-warning"><?= (int) $totalVotes ?></div>
-                <div class="text-muted small mt-1">
-                    <i class="bi bi-check2-square me-1"></i>Kullanılan Oy
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<section class="ds-grid ds-grid-cols-4 ds-grid-cols-md-2 ds-grid-cols-sm-2 ds-gap-4 ds-mb-8" aria-label="Sayısal özet">
+    <article class="ds-stat ds-stat--ink">
+        <p class="ds-stat__label">Seçim</p>
+        <p class="ds-stat__value"><?= (int) $totalElections ?></p>
+        <p class="ds-stat__sub">Sistemde tanımlı seçim sayısı</p>
+    </article>
+    <article class="ds-stat ds-stat--char">
+        <p class="ds-stat__label">Kullanıcı</p>
+        <p class="ds-stat__value"><?= (int) $totalUsers ?></p>
+        <p class="ds-stat__sub">Admin · Divan · Görevli</p>
+    </article>
+    <article class="ds-stat ds-stat--brass">
+        <p class="ds-stat__label">Üye</p>
+        <p class="ds-stat__value"><?= (int) $totalMembers ?></p>
+        <p class="ds-stat__sub">Aktif seçimde kayıtlı üye</p>
+    </article>
+    <article class="ds-stat ds-stat--ink">
+        <p class="ds-stat__label">Kullanılan Oy</p>
+        <p class="ds-stat__value"><?= (int) $totalVotes ?></p>
+        <p class="ds-stat__sub">Toplam atılan oy sayısı</p>
+    </article>
+</section>
 
-<!-- Aktif seçim bilgisi -->
 <?php if ($currentElection): ?>
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white border-bottom py-3">
-        <h5 class="mb-0 fw-semibold">
-            <i class="bi bi-calendar-check me-2 text-primary"></i>Aktif Seçim
-        </h5>
-    </div>
-    <div class="card-body">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <h6 class="fw-bold mb-1"><?= e($currentElection['title']) ?></h6>
-                <?php if ($currentElection['description']): ?>
-                <p class="text-muted small mb-2"><?= e($currentElection['description']) ?></p>
-                <?php endif; ?>
-                <div class="d-flex gap-3 flex-wrap small text-muted">
-                    <?php if ($currentElection['started_at']): ?>
-                    <span><i class="bi bi-play-circle me-1"></i>Başladı: <?= e($currentElection['started_at']) ?></span>
-                    <?php endif; ?>
-                    <?php if ($currentElection['closed_at']): ?>
-                    <span><i class="bi bi-stop-circle me-1"></i>Kapandı: <?= e($currentElection['closed_at']) ?></span>
-                    <?php endif; ?>
-                </div>
-            </div>
-            <div class="col-md-4 text-md-end mt-2 mt-md-0">
-                <?php $si = $statusMap[$currentElection['status']] ?? ['label' => $currentElection['status'], 'class' => 'bg-secondary']; ?>
-                <span class="badge <?= $si['class'] ?> fs-6 px-3 py-2"><?= $si['label'] ?></span>
-            </div>
+<section class="ds-card ds-mb-8" aria-labelledby="active-election">
+    <header class="ds-card__header">
+        <div>
+            <h2 id="active-election" class="ds-card__title">Aktif Seçim</h2>
+            <p class="ds-card__subtitle">Sistemde varsayılan olarak işlem gören seçim</p>
         </div>
-    </div>
-</div>
+        <span class="ds-badge <?= $badge['class'] ?>"><?= e($badge['label']) ?></span>
+    </header>
+
+    <h3 class="ds-text-2xl ds-font-serif ds-font-bold" style="margin: 0 0 var(--s-2); color: var(--char-800);"><?= e($currentElection['title']) ?></h3>
+    <?php if (!empty($currentElection['description'])): ?>
+    <p class="ds-text-muted ds-mb-4"><?= e($currentElection['description']) ?></p>
+    <?php endif; ?>
+
+    <dl class="ds-grid ds-grid-cols-3 ds-grid-cols-md-1 ds-gap-4 ds-mt-6" style="font-size: var(--t-sm);">
+        <div>
+            <dt class="ds-text-xs ds-text-muted" style="text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Durum</dt>
+            <dd class="ds-font-semi" style="margin:0; color:var(--char-700);"><?= e($badge['label']) ?></dd>
+        </div>
+        <?php if (!empty($currentElection['started_at'])): ?>
+        <div>
+            <dt class="ds-text-xs ds-text-muted" style="text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Başlangıç</dt>
+            <dd class="ds-font-mono ds-tabular" style="margin:0;color:var(--char-700);"><?= e($currentElection['started_at']) ?></dd>
+        </div>
+        <?php endif; ?>
+        <?php if (!empty($currentElection['closed_at'])): ?>
+        <div>
+            <dt class="ds-text-xs ds-text-muted" style="text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Bitiş</dt>
+            <dd class="ds-font-mono ds-tabular" style="margin:0;color:var(--char-700);"><?= e($currentElection['closed_at']) ?></dd>
+        </div>
+        <?php endif; ?>
+    </dl>
+</section>
 <?php else: ?>
-<div class="alert alert-warning mb-4">
-    <i class="bi bi-exclamation-triangle-fill me-2"></i>
-    Henüz seçim oluşturulmamış.
-    <a href="/admin/elections" class="alert-link">Seçim oluşturun</a>.
+<div class="ds-alert ds-alert--warn ds-mb-8" role="alert">
+    <i class="bi bi-exclamation-triangle ds-alert__icon" aria-hidden="true"></i>
+    <div class="ds-alert__body">
+        <p class="ds-alert__text">Henüz seçim oluşturulmamış. <a href="/admin/elections">Seçim oluşturun</a> ya da yönetim panelinden başlayın.</p>
+    </div>
 </div>
 <?php endif; ?>
 
-<!-- Hızlı erişim bağlantıları -->
-<h5 class="fw-semibold mb-3">Hızlı Erişim</h5>
-<div class="row g-3">
+<section aria-labelledby="quick-access">
+    <header class="ds-mb-4">
+        <h2 id="quick-access" class="ds-font-serif ds-text-xl ds-font-bold" style="margin:0 0 var(--s-1);color:var(--char-800);">Hızlı Erişim</h2>
+        <p class="ds-text-sm ds-text-muted" style="margin:0;">Sık kullanılan yönetim ekranları</p>
+    </header>
 
-    <div class="col-6 col-md-4 col-xl-3">
-        <a href="/admin/log" class="card border-0 shadow-sm h-100 text-decoration-none text-body quick-link-card">
-            <div class="card-body text-center py-4">
-                <i class="bi bi-journal-text fs-2 text-info mb-2 d-block"></i>
-                <div class="fw-semibold">Aktivite Logu</div>
-                <small class="text-muted">Sistem işlem kayıtları</small>
+    <div class="ds-grid ds-grid-cols-4 ds-grid-cols-md-2 ds-grid-cols-sm-1 ds-gap-4">
+        <?php
+        $tiles = [
+            ['url' => '/admin/log',         'icon' => 'bi-journal-text',    'label' => 'Aktivite Logu',     'desc' => 'Tüm sistem işlem kayıtları'],
+            ['url' => '/admin/log/verify',  'icon' => 'bi-shield-lock',     'label' => 'Log Bütünlüğü',     'desc' => 'Hash chain doğrulaması'],
+            ['url' => '/admin/users',       'icon' => 'bi-person-gear',     'label' => 'Kullanıcı Yönetimi','desc' => 'Hesap ve rol yönetimi'],
+            ['url' => '/admin/elections',   'icon' => 'bi-calendar-event',  'label' => 'Seçim Yönetimi',    'desc' => 'Seçim oluştur ve yönet'],
+            ['url' => '/admin/system',      'icon' => 'bi-hdd-network',     'label' => 'Sistem Durumu',     'desc' => 'Bağlantı ve servis kontrolü'],
+            ['url' => '/admin/hash-export', 'icon' => 'bi-filetype-csv',    'label' => 'Hash Dışa Aktar',   'desc' => 'Commitment CSV indirme'],
+            ['url' => '/admin/pdf',         'icon' => 'bi-file-earmark-text','label'=> 'Tutanak (PDF)',     'desc' => 'Resmi seçim tutanağı'],
+            ['url' => '/divan',             'icon' => 'bi-person-vcard',    'label' => 'Divan Paneli',      'desc' => 'Seçim yürütme ekranı'],
+        ];
+        if (!\App\Core\Config::isProduction()) {
+            $tiles[] = ['url' => '/admin/test', 'icon' => 'bi-bug', 'label' => 'Test Modu', 'desc' => 'Yalnızca development'];
+        }
+        foreach ($tiles as $t):
+        ?>
+        <a href="<?= e($t['url']) ?>" class="ds-card ds-card--interactive">
+            <div class="ds-flex ds-items-start ds-gap-3" style="margin-bottom: var(--s-4);">
+                <span aria-hidden="true" style="width:36px;height:36px;display:grid;place-items:center;background:var(--paper-soft);border:1px solid var(--line);border-radius:var(--r-sm);color:var(--ink-700);font-size:var(--t-lg);">
+                    <i class="bi <?= e($t['icon']) ?>"></i>
+                </span>
             </div>
+            <h3 class="ds-font-serif ds-font-bold" style="font-size:var(--t-lg);margin:0 0 var(--s-1);color:var(--char-800);"><?= e($t['label']) ?></h3>
+            <p class="ds-text-sm ds-text-muted" style="margin:0;"><?= e($t['desc']) ?></p>
         </a>
+        <?php endforeach; ?>
     </div>
-
-    <div class="col-6 col-md-4 col-xl-3">
-        <a href="/admin/users" class="card border-0 shadow-sm h-100 text-decoration-none text-body quick-link-card">
-            <div class="card-body text-center py-4">
-                <i class="bi bi-person-gear fs-2 text-primary mb-2 d-block"></i>
-                <div class="fw-semibold">Kullanıcı Yönetimi</div>
-                <small class="text-muted">Hesap ve rol yönetimi</small>
-            </div>
-        </a>
-    </div>
-
-    <div class="col-6 col-md-4 col-xl-3">
-        <a href="/admin/system" class="card border-0 shadow-sm h-100 text-decoration-none text-body quick-link-card">
-            <div class="card-body text-center py-4">
-                <i class="bi bi-hdd-network fs-2 text-success mb-2 d-block"></i>
-                <div class="fw-semibold">Sistem Durumu</div>
-                <small class="text-muted">Bağlantı ve servis kontrolü</small>
-            </div>
-        </a>
-    </div>
-
-    <div class="col-6 col-md-4 col-xl-3">
-        <a href="/admin/elections" class="card border-0 shadow-sm h-100 text-decoration-none text-body quick-link-card">
-            <div class="card-body text-center py-4">
-                <i class="bi bi-calendar-event fs-2 text-warning mb-2 d-block"></i>
-                <div class="fw-semibold">Seçim Yönetimi</div>
-                <small class="text-muted">Seçim oluştur ve yönet</small>
-            </div>
-        </a>
-    </div>
-
-    <div class="col-6 col-md-4 col-xl-3">
-        <a href="/admin/test" class="card border-0 shadow-sm h-100 text-decoration-none text-body quick-link-card">
-            <div class="card-body text-center py-4">
-                <i class="bi bi-bug fs-2 text-secondary mb-2 d-block"></i>
-                <div class="fw-semibold">Test Modu</div>
-                <small class="text-muted">Sistem doğrulama testleri</small>
-            </div>
-        </a>
-    </div>
-
-    <div class="col-6 col-md-4 col-xl-3">
-        <a href="/admin/pdf" class="card border-0 shadow-sm h-100 text-decoration-none text-body quick-link-card">
-            <div class="card-body text-center py-4">
-                <i class="bi bi-file-earmark-pdf fs-2 text-danger mb-2 d-block"></i>
-                <div class="fw-semibold">PDF Tutanak</div>
-                <small class="text-muted">Resmi seçim tutanağı</small>
-            </div>
-        </a>
-    </div>
-
-    <div class="col-6 col-md-4 col-xl-3">
-        <a href="/admin/hash-export" class="card border-0 shadow-sm h-100 text-decoration-none text-body quick-link-card">
-            <div class="card-body text-center py-4">
-                <i class="bi bi-filetype-csv fs-2 text-dark mb-2 d-block"></i>
-                <div class="fw-semibold">Hash Export</div>
-                <small class="text-muted">Commitment hash CSV dışa aktar</small>
-            </div>
-        </a>
-    </div>
-
-    <div class="col-6 col-md-4 col-xl-3">
-        <a href="/divan" class="card border-0 shadow-sm h-100 text-decoration-none text-body quick-link-card">
-            <div class="card-body text-center py-4">
-                <i class="bi bi-person-badge fs-2 mb-2 d-block" style="color: var(--oyla-secondary);"></i>
-                <div class="fw-semibold">Divan Paneli</div>
-                <small class="text-muted">Seçim yürütme ekranı</small>
-            </div>
-        </a>
-    </div>
-
-</div>
-
-<style>
-.quick-link-card {
-    transition: transform .15s, box-shadow .15s;
-}
-.quick-link-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 .5rem 1.5rem rgba(0,0,0,.12) !important;
-}
-</style>
+</section>

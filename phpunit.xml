@@ -22,6 +22,11 @@
             <file>app/Services/PdfService.php</file>
         </exclude>
     </source>
+<!--
+    Coverage raporu için xdebug/pcov gerekli. Lokal/CI'da
+    `composer coverage` çalıştırın (XDEBUG_MODE=coverage). Burada coverage
+    tag'i tutmuyoruz ki driver yokken "no coverage driver" warning'i çıkmasın.
+-->
     <php>
         <!--
             force="true": $_ENV ve $_SERVER'a da yazsın (default sadece putenv yapar).

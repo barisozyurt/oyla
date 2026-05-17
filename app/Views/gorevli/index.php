@@ -1,317 +1,248 @@
 <?php
 /**
  * Görevli Masası — Ana Sayfa
- *
- * Değişkenler:
- *   $election  array|null
- *   $members   array
- *   $stats     array  (total, waiting, signed, done)
- *   $user      array
- *   $csrf      string  (hidden input HTML)
  */
+
+$statusMeta = [
+    'draft'  => ['label' => 'Taslak',   'class' => 'ds-badge--neutral'],
+    'test'   => ['label' => 'Test',     'class' => 'ds-badge--warn'],
+    'open'   => ['label' => 'Açık',     'class' => 'ds-badge--ink ds-badge--live'],
+    'closed' => ['label' => 'Kapandı',  'class' => 'ds-badge--brass'],
+];
+$badge = $election ? ($statusMeta[$election['status']] ?? ['label' => $election['status'], 'class' => 'ds-badge--neutral']) : null;
+
+$donePct   = $stats['total'] > 0 ? round($stats['done']   / $stats['total'] * 100) : 0;
+$signedPct = $stats['total'] > 0 ? round($stats['signed'] / $stats['total'] * 100) : 0;
 ?>
 
-<!-- Başlık -->
-<div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
-    <div>
-        <h1 class="fw-bold mb-1" style="font-size: 1.9rem;">
-            <i class="bi bi-clipboard-check-fill text-primary me-2"></i>Görevli Masası
-        </h1>
-        <?php if ($election): ?>
-        <p class="text-muted mb-0 fs-5"><?= e($election['title']) ?></p>
-        <?php else: ?>
-        <p class="text-muted mb-0">Aktif seçim bulunamadı.</p>
+<header class="ds-page-header">
+    <div class="ds-page-header__row">
+        <div>
+            <p class="ds-page-header__eyebrow">Kayıt Masası</p>
+            <h1 class="ds-page-header__title">Görevli Masası</h1>
+            <?php if ($election): ?>
+            <p class="ds-page-header__lead"><?= e($election['title']) ?></p>
+            <?php else: ?>
+            <p class="ds-page-header__lead">Aktif seçim bulunamadı.</p>
+            <?php endif; ?>
+        </div>
+        <?php if ($badge): ?>
+        <span class="ds-badge <?= $badge['class'] ?>"><?= e($badge['label']) ?></span>
         <?php endif; ?>
     </div>
-
-    <?php if ($election): ?>
-    <?php
-        $statusMap = [
-            'draft'  => ['label' => 'Taslak',  'class' => 'bg-secondary'],
-            'test'   => ['label' => 'Test',     'class' => 'bg-warning text-dark'],
-            'open'   => ['label' => 'Açık',     'class' => 'bg-success'],
-            'closed' => ['label' => 'Kapalı',   'class' => 'bg-danger'],
-        ];
-        $si = $statusMap[$election['status']] ?? ['label' => $election['status'], 'class' => 'bg-secondary'];
-    ?>
-    <span class="badge <?= $si['class'] ?> fs-5 px-3 py-2 align-self-start">
-        <?= $si['label'] ?>
-    </span>
-    <?php endif; ?>
-</div>
+</header>
 
 <?php if (!$election): ?>
-<div class="alert alert-warning">
-    <i class="bi bi-exclamation-triangle-fill me-2"></i>
-    Henüz aktif bir seçim yok. Lütfen <a href="/yonetim" class="alert-link">Yönetim Paneli</a>'nden seçim oluşturun.
+<div class="ds-alert ds-alert--warn">
+    <i class="bi bi-exclamation-triangle ds-alert__icon" aria-hidden="true"></i>
+    <div class="ds-alert__body"><p class="ds-alert__text">Henüz aktif bir seçim yok. <a href="/yonetim">Yönetim Paneli</a>'nden seçim oluşturun.</p></div>
 </div>
 <?php return; ?>
 <?php endif; ?>
 
 <?php if ($election['status'] !== 'open'): ?>
-<div class="alert alert-info">
-    <i class="bi bi-info-circle-fill me-2"></i>
-    Seçim henüz başlamadı veya kapandı. Görevli masası yalnızca seçim <strong>açık</strong> durumdayken aktiftir.
+<div class="ds-alert ds-alert--info">
+    <i class="bi bi-info-circle ds-alert__icon" aria-hidden="true"></i>
+    <div class="ds-alert__body"><p class="ds-alert__text">Seçim henüz başlamadı veya kapandı. Görevli masası yalnızca seçim <strong>açık</strong> durumdayken aktiftir.</p></div>
 </div>
 <?php endif; ?>
 
-<!-- CSRF meta etiketi (JS için) -->
-<meta name="csrf-token" content="<?= e($_SESSION['csrf_token'] ?? '') ?>">
+<meta name="csrf-token" content="<?= e(csrf_token()) ?>">
 
-<div class="row g-4">
+<div class="ds-grid ds-grid-cols-12 ds-gap-6 ds-grid-cols-md-1">
 
-    <!-- ===== SOL / ANA PANEL ===== -->
-    <div class="col-lg-8">
+    <div style="grid-column: span 8;">
 
-        <!-- Arama Kartı -->
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white border-bottom fw-bold fs-5 py-3">
-                <i class="bi bi-search text-primary me-2"></i>Üye Ara
-            </div>
-            <div class="card-body py-4">
-                <div class="input-group input-group-lg">
-                    <input
-                        type="text"
-                        id="search-input"
-                        class="form-control"
-                        placeholder="TC Kimlik No veya Sicil No girin…"
-                        autocomplete="off"
-                        maxlength="20"
-                    >
-                    <button class="btn btn-primary px-4" id="search-btn" type="button">
-                        <i class="bi bi-search me-1"></i>Ara
-                    </button>
-                    <button class="btn btn-outline-secondary" id="reset-btn" type="button" style="display:none;">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
+        <section class="ds-card ds-mb-6" aria-labelledby="search-h">
+            <header class="ds-card__header">
+                <div>
+                    <h2 id="search-h" class="ds-card__title">Üye Ara</h2>
+                    <p class="ds-card__subtitle">TC kimlik veya sicil numarası ile</p>
                 </div>
-                <div id="search-error" class="text-danger small mt-2" style="display:none;"></div>
+            </header>
+            <div class="ds-flex ds-gap-3 ds-items-end ds-flex-wrap">
+                <div class="ds-flex-1 ds-field" style="margin-bottom:0;min-width:240px;">
+                    <label for="search-input" class="ds-field__label">TC Kimlik veya Sicil No</label>
+                    <input id="search-input"
+                           type="text"
+                           class="ds-input ds-input--lg ds-input--mono"
+                           placeholder="ör. 12345678901"
+                           autocomplete="off"
+                           inputmode="numeric"
+                           maxlength="20">
+                </div>
+                <button class="ds-btn ds-btn--primary ds-btn--lg" id="search-btn" type="button">
+                    <i class="bi bi-search" aria-hidden="true"></i>Ara
+                </button>
+                <button class="ds-btn ds-btn--ghost ds-btn--lg" id="reset-btn" type="button" style="display:none">
+                    <i class="bi bi-x-lg" aria-hidden="true"></i>
+                </button>
             </div>
-        </div>
+            <p id="search-error" class="ds-text-sm ds-text-danger ds-mt-3" style="display:none;"></p>
+        </section>
 
-        <!-- Üye Kartı (başlangıçta gizli) -->
-        <div id="member-card" class="card border-0 shadow-sm mb-4" style="display:none;">
-            <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
-                <span class="fw-bold fs-5">
-                    <i class="bi bi-person-fill text-primary me-2"></i>Üye Bilgileri
-                </span>
-                <span id="member-status-badge" class="badge bg-secondary fs-6 px-3 py-2"></span>
-            </div>
-            <div class="card-body">
-                <div class="d-flex align-items-center gap-4">
-                    <!-- Avatar -->
-                    <div id="member-avatar" class="flex-shrink-0">
-                        <svg class="rounded-circle" viewBox="0 0 64 64" width="64" height="64">
-                            <rect width="64" height="64" rx="32" fill="#E9ECEF"/>
-                            <circle cx="32" cy="24" r="11" fill="#B4B2A9"/>
-                            <path d="M8 60c0-13 10.7-20 24-20s24 7 24 20" fill="#B4B2A9"/>
-                        </svg>
-                    </div>
-                    <!-- Bilgiler -->
-                    <div class="flex-grow-1">
-                        <div class="fw-bold fs-4 mb-1" id="member-name">—</div>
-                        <div class="text-muted small d-flex flex-wrap gap-3" id="member-details">
-                            <span id="member-tc"></span>
-                            <span id="member-sicil"></span>
-                            <span id="member-phone"></span>
-                        </div>
+        <section id="member-card" class="ds-card ds-mb-6" style="display:none;" aria-labelledby="member-h">
+            <header class="ds-card__header">
+                <h2 id="member-h" class="ds-card__title">Üye Bilgileri</h2>
+                <span id="member-status-badge" class="ds-badge ds-badge--neutral"></span>
+            </header>
+            <div class="ds-flex ds-items-center ds-gap-4">
+                <div id="member-avatar" style="flex-shrink:0;">
+                    <span class="ds-avatar ds-avatar--lg"><i class="bi bi-person" aria-hidden="true"></i></span>
+                </div>
+                <div class="ds-flex-1">
+                    <h3 id="member-name" class="ds-font-serif ds-font-bold ds-text-xl" style="margin:0 0 var(--s-2);color:var(--char-800);">—</h3>
+                    <div class="ds-flex ds-gap-4 ds-flex-wrap ds-text-sm ds-text-muted" id="member-details">
+                        <span id="member-tc"></span>
+                        <span id="member-sicil"></span>
+                        <span id="member-phone"></span>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Adım Sihirbazı (başlangıçta gizli) -->
-        <div id="wizard-card" class="card border-0 shadow-sm mb-4" style="display:none;">
-            <div class="card-header bg-white border-bottom py-3">
-                <span class="fw-bold fs-5">
-                    <i class="bi bi-list-ol text-primary me-2"></i>İşlem Adımları
-                </span>
+        <section id="wizard-card" class="ds-card ds-mb-6" style="display:none;" aria-labelledby="wiz-h">
+            <header class="ds-card__header">
+                <div>
+                    <h2 id="wiz-h" class="ds-card__title">İşlem Adımları</h2>
+                    <p class="ds-card__subtitle">5 adımlı check-in akışı</p>
+                </div>
+            </header>
+
+            <ol id="step-bar" class="ds-flex ds-justify-between ds-gap-3" style="list-style:none;margin:0 0 var(--s-6);padding:0;position:relative;">
+                <div style="position:absolute;top:18px;left:8%;right:8%;height:1px;background:var(--line);z-index:0;"></div>
+                <?php
+                $steps = [
+                    ['id' => 'step-verify',   'icon' => 'bi-person-check', 'label' => 'Kimlik'],
+                    ['id' => 'step-sign1',    'icon' => 'bi-pen',          'label' => '1. İmza'],
+                    ['id' => 'step-token',    'icon' => 'bi-qr-code',      'label' => 'Token'],
+                    ['id' => 'step-vote-wait','icon' => 'bi-hourglass-split','label' => 'Oy'],
+                    ['id' => 'step-sign2',    'icon' => 'bi-pen-fill',     'label' => '2. İmza'],
+                ];
+                foreach ($steps as $step):
+                ?>
+                <li id="<?= $step['id'] ?>" class="ds-text-center ds-flex-1" style="position:relative;z-index:1;">
+                    <span class="step-circle" style="width:36px;height:36px;border:1.5px solid var(--line-strong);background:var(--paper-white);border-radius:50%;display:grid;place-items:center;margin:0 auto var(--s-2);color:var(--char-400);transition: all 180ms var(--ease);">
+                        <i class="bi <?= $step['icon'] ?>" aria-hidden="true"></i>
+                    </span>
+                    <span class="ds-text-xs ds-text-muted" style="letter-spacing:0.04em;"><?= $step['label'] ?></span>
+                </li>
+                <?php endforeach; ?>
+            </ol>
+
+            <div id="action-area" class="ds-text-center" style="padding:var(--s-3) 0;">
+                <!-- JS doldurur -->
             </div>
-            <div class="card-body pt-4 pb-3">
 
-                <!-- Yatay Adımlar -->
-                <div class="d-flex align-items-start justify-content-between mb-4 position-relative" id="step-bar">
-                    <!-- Bağlantı çizgisi -->
-                    <div class="position-absolute top-0 start-0 end-0"
-                         style="height:3px; background:#dee2e6; top:18px; margin:0 10%; z-index:0;"></div>
-
-                    <?php
-                    $steps = [
-                        ['id' => 'step-verify',   'icon' => 'bi-person-check', 'label' => 'Kimlik<br>Doğrula'],
-                        ['id' => 'step-sign1',    'icon' => 'bi-pen',          'label' => '1. İmza'],
-                        ['id' => 'step-token',    'icon' => 'bi-qr-code',      'label' => 'Token<br>Üret'],
-                        ['id' => 'step-vote-wait','icon' => 'bi-hourglass-split','label' => 'Oy<br>Bekleniyor'],
-                        ['id' => 'step-sign2',    'icon' => 'bi-pen-fill',     'label' => '2. İmza'],
-                    ];
-                    foreach ($steps as $i => $step):
-                    ?>
-                    <div class="text-center flex-fill position-relative" id="<?= $step['id'] ?>" style="z-index:1;">
-                        <div class="step-circle mx-auto mb-1 d-flex align-items-center justify-content-center rounded-circle border border-2 border-secondary bg-white"
-                             style="width:38px;height:38px;font-size:1rem;transition:all .25s;">
-                            <i class="bi <?= $step['icon'] ?> text-secondary"></i>
-                        </div>
-                        <div class="step-label small text-muted lh-sm" style="font-size:.72rem;">
-                            <?= $step['label'] ?>
-                        </div>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-
-                <!-- Aksiyon Alanı -->
-                <div id="action-area" class="text-center py-2">
-                    <!-- JS tarafından doldurulur -->
-                </div>
-
-                <!-- QR Kod Alanı -->
-                <div id="qr-area" class="text-center py-3 border-top mt-3" style="display:none;">
-                    <p class="text-muted small mb-2">
-                        <i class="bi bi-qr-code me-1"></i>Aşağıdaki QR kodu üyeye gösterin veya SMS gönderildi.
-                    </p>
-                    <img id="qr-image" src="" alt="QR Kod" class="img-fluid rounded shadow-sm" style="max-width:220px;">
-                    <div class="mt-2">
-                        <a id="vote-url-link" href="#" target="_blank" class="small text-break text-primary"></a>
-                    </div>
-                    <div class="mt-1 text-muted small">
-                        <i class="bi bi-clock me-1"></i>Son geçerlilik: <span id="token-expires"></span>
-                    </div>
-                </div>
-
-                <!-- Oy bekleme göstergesi -->
-                <div id="vote-waiting-area" class="text-center py-3 border-top mt-3" style="display:none;">
-                    <div class="d-flex align-items-center justify-content-center gap-3">
-                        <div class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></div>
-                        <span class="fw-semibold text-primary fs-5">Üyenin oy kullanması bekleniyor…</span>
-                    </div>
-                    <p class="text-muted small mt-2 mb-0">Oy kullanıldığında bu ekran otomatik güncellenecek.</p>
-                </div>
-
-                <!-- Tamamlandı mesajı -->
-                <div id="done-area" class="text-center py-3 border-top mt-3" style="display:none;">
-                    <i class="bi bi-check-circle-fill text-success d-block mb-2" style="font-size:2.5rem;"></i>
-                    <div class="fw-bold fs-5 text-success">İşlem Tamamlandı</div>
-                    <p class="text-muted small mt-1">Üye oy kullandı ve işlem kayıt altına alındı.</p>
-                </div>
+            <div id="qr-area" style="display:none;border-top:1px solid var(--line);padding-top:var(--s-5);margin-top:var(--s-5);text-align:center;">
+                <p class="ds-text-sm ds-text-muted ds-mb-3">
+                    <i class="bi bi-qr-code" aria-hidden="true"></i> Üyeye gösterin veya SMS gönderildi.
+                </p>
+                <img id="qr-image" src="" alt="QR Kod" style="max-width:200px;border:1px solid var(--line);border-radius:var(--r-sm);padding:var(--s-2);background:var(--paper-white);">
+                <p class="ds-mt-3 ds-text-xs ds-text-muted">
+                    <a id="vote-url-link" href="#" target="_blank" rel="noopener" class="ds-font-mono"></a>
+                </p>
+                <p class="ds-mt-2 ds-text-xs ds-text-muted">
+                    <i class="bi bi-clock" aria-hidden="true"></i> Geçerlilik: <span id="token-expires" class="ds-tabular"></span>
+                </p>
             </div>
-        </div>
 
-    </div><!-- /col-lg-8 -->
+            <div id="vote-waiting-area" style="display:none;border-top:1px solid var(--line);padding-top:var(--s-5);margin-top:var(--s-5);text-align:center;">
+                <span class="ds-spinner" style="color:var(--ink-600);" aria-hidden="true"></span>
+                <p class="ds-text-body ds-mt-3 ds-font-semi">Üyenin oy kullanması bekleniyor…</p>
+                <p class="ds-text-xs ds-text-muted">Oy kullanıldığında ekran otomatik güncellenecek.</p>
+            </div>
 
-    <!-- ===== SAĞ PANEL: STATS + ÜYE LİSTESİ ===== -->
-    <div class="col-lg-4">
+            <div id="done-area" style="display:none;border-top:1px solid var(--line);padding-top:var(--s-5);margin-top:var(--s-5);text-align:center;">
+                <i class="bi bi-check-circle" style="font-size:var(--t-4xl);color:var(--ink-600);" aria-hidden="true"></i>
+                <p class="ds-font-serif ds-font-bold ds-text-xl ds-mt-3" style="color:var(--ink-700);margin-bottom:var(--s-1);">İşlem Tamamlandı</p>
+                <p class="ds-text-sm ds-text-muted">Üye oy kullandı ve işlem kayıt altına alındı.</p>
+            </div>
+        </section>
 
-        <!-- Mini İstatistikler -->
-        <div class="card border-0 shadow-sm mb-3">
-            <div class="card-body py-3 px-4">
-                <div class="row g-2 text-center">
-                    <div class="col-4">
-                        <div class="fw-bold fs-4 text-secondary" id="stat-waiting">
-                            <?= (int) $stats['waiting'] ?>
-                        </div>
-                        <div class="text-muted" style="font-size:.75rem;">Bekliyor</div>
-                    </div>
-                    <div class="col-4">
-                        <div class="fw-bold fs-4 text-warning" id="stat-signed">
-                            <?= (int) $stats['signed'] ?>
-                        </div>
-                        <div class="text-muted" style="font-size:.75rem;">İmza Atıldı</div>
-                    </div>
-                    <div class="col-4">
-                        <div class="fw-bold fs-4 text-success" id="stat-done">
-                            <?= (int) $stats['done'] ?>
-                        </div>
-                        <div class="text-muted" style="font-size:.75rem;">Tamamlandı</div>
-                    </div>
+    </div>
+
+    <aside style="grid-column: span 4;">
+
+        <section class="ds-card ds-mb-4">
+            <div class="ds-flex ds-justify-between ds-gap-3 ds-mb-3">
+                <div class="ds-flex-1 ds-text-center">
+                    <p class="ds-font-serif ds-font-bold ds-text-2xl ds-tabular" style="color:var(--char-500);margin:0;" id="stat-waiting"><?= (int) $stats['waiting'] ?></p>
+                    <p class="ds-text-xs ds-text-muted" style="text-transform:uppercase;letter-spacing:0.1em;margin:0;">Bekliyor</p>
                 </div>
-                <!-- İlerleme çubuğu -->
-                <div class="progress mt-3" style="height:8px; border-radius:4px;">
-                    <?php
-                        $donePct    = $stats['total'] > 0 ? round($stats['done']   / $stats['total'] * 100) : 0;
-                        $signedPct  = $stats['total'] > 0 ? round($stats['signed'] / $stats['total'] * 100) : 0;
-                    ?>
-                    <div class="progress-bar bg-success" id="bar-done"
-                         style="width:<?= $donePct ?>%;" title="Tamamlandı"></div>
-                    <div class="progress-bar bg-warning" id="bar-signed"
-                         style="width:<?= $signedPct ?>%;" title="İmza Atıldı"></div>
+                <div class="ds-flex-1 ds-text-center">
+                    <p class="ds-font-serif ds-font-bold ds-text-2xl ds-tabular" style="color:var(--brass-600);margin:0;" id="stat-signed"><?= (int) $stats['signed'] ?></p>
+                    <p class="ds-text-xs ds-text-muted" style="text-transform:uppercase;letter-spacing:0.1em;margin:0;">İmzalı</p>
                 </div>
-                <div class="text-muted text-center mt-1" style="font-size:.72rem;">
-                    Toplam: <strong id="stat-total"><?= (int) $stats['total'] ?></strong> üye
+                <div class="ds-flex-1 ds-text-center">
+                    <p class="ds-font-serif ds-font-bold ds-text-2xl ds-tabular" style="color:var(--ink-700);margin:0;" id="stat-done"><?= (int) $stats['done'] ?></p>
+                    <p class="ds-text-xs ds-text-muted" style="text-transform:uppercase;letter-spacing:0.1em;margin:0;">Tamam</p>
                 </div>
             </div>
-        </div>
+            <div class="ds-progress" style="display:flex; height: 8px;">
+                <div class="ds-progress__bar" id="bar-done" style="width:<?= $donePct ?>%; flex:0 0 <?= $donePct ?>%;"></div>
+                <div class="ds-progress__bar ds-progress__bar--brass" id="bar-signed" style="width:<?= $signedPct ?>%; flex:0 0 <?= $signedPct ?>%;"></div>
+            </div>
+            <p class="ds-text-xs ds-text-muted ds-text-center ds-mt-2">Toplam: <strong class="ds-text-body ds-tabular" id="stat-total"><?= (int) $stats['total'] ?></strong> üye</p>
+        </section>
 
-        <!-- Filtre Sekmeleri -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-bottom p-0">
-                <ul class="nav nav-tabs nav-fill border-0" id="member-tabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active py-2 px-1 small fw-semibold"
-                                data-filter="" type="button">Tümü</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link py-2 px-1 small"
-                                data-filter="waiting" type="button">
-                            <span class="text-secondary">○</span> Bekliyor
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link py-2 px-1 small"
-                                data-filter="signed" type="button">
-                            <span class="text-warning">◑</span> İmza
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link py-2 px-1 small"
-                                data-filter="done" type="button">
-                            <span class="text-success">●</span> Tamam
-                        </button>
-                    </li>
-                </ul>
+        <section class="ds-card" style="padding: 0;" aria-labelledby="member-list-h">
+            <header style="padding: var(--s-4) var(--s-5); border-bottom: 1px solid var(--line);">
+                <h2 id="member-list-h" class="ds-card__title" style="margin:0;">Üye Listesi</h2>
+            </header>
+            <div class="ds-btn-group" style="padding: var(--s-3); border-bottom: 1px solid var(--line); display:flex;gap:4px;">
+                <button class="ds-btn ds-btn--ghost ds-btn--sm ds-flex-1 member-filter is-active" data-filter="">Tümü</button>
+                <button class="ds-btn ds-btn--ghost ds-btn--sm ds-flex-1 member-filter" data-filter="waiting">Bekliyor</button>
+                <button class="ds-btn ds-btn--ghost ds-btn--sm ds-flex-1 member-filter" data-filter="signed">İmza</button>
+                <button class="ds-btn ds-btn--ghost ds-btn--sm ds-flex-1 member-filter" data-filter="done">Tamam</button>
             </div>
-            <!-- Anlık arama filtresi -->
-            <div class="px-2 pt-2 pb-1 bg-white border-bottom">
-                <input type="text" id="list-filter-input" class="form-control form-control-sm"
-                       placeholder="İsimle filtrele…" autocomplete="off">
+            <div style="padding: var(--s-3); border-bottom: 1px solid var(--line);">
+                <input type="text" id="list-filter-input" class="ds-input ds-input--mono" style="font-family:var(--font-sans);letter-spacing:normal;font-size:var(--t-sm);" placeholder="İsme göre filtrele…" autocomplete="off">
             </div>
-            <!-- Liste -->
-            <div class="card-body p-0">
-                <div id="member-list"
-                     class="list-group list-group-flush"
-                     style="max-height: 420px; overflow-y: auto;">
-                    <?php foreach ($members as $m): ?>
-                    <?php
-                        $icon  = match($m['status']) {
-                            'done'   => '<span class="text-success me-1">●</span>',
-                            'signed' => '<span class="text-warning me-1">◑</span>',
-                            default  => '<span class="text-secondary me-1">○</span>',
-                        };
-                        $textClass = match($m['status']) {
-                            'done'   => 'text-muted',
-                            default  => '',
-                        };
-                    ?>
+            <ul id="member-list" style="list-style:none;margin:0;padding:0;max-height:380px;overflow-y:auto;">
+                <?php foreach ($members as $m):
+                    $dot = match($m['status']) {
+                        'done'   => 'background:var(--ink-600);',
+                        'signed' => 'background:var(--brass-600);',
+                        default  => 'background:var(--char-300);',
+                    };
+                ?>
+                <li>
                     <button type="button"
-                            class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-2 px-3 member-list-item <?= $textClass ?>"
+                            class="member-list-item ds-flex ds-items-center ds-gap-3"
                             data-member-id="<?= (int) $m['id'] ?>"
                             data-name="<?= e(mb_strtolower($m['name'])) ?>"
-                            data-status="<?= e($m['status']) ?>">
-                        <?= $icon ?>
-                        <span class="small flex-grow-1 text-truncate"><?= e($m['name']) ?></span>
+                            data-status="<?= e($m['status']) ?>"
+                            style="width:100%;text-align:left;background:transparent;border:0;padding:var(--s-3) var(--s-4);border-bottom:1px solid var(--line);font-family:var(--font-sans);color:var(--char-700);cursor:pointer;transition:background var(--t-fast) var(--ease);">
+                        <span style="width:8px;height:8px;border-radius:50%;<?= $dot ?>;flex-shrink:0;" aria-hidden="true"></span>
+                        <span class="ds-flex-1 ds-text-sm" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><?= e($m['name']) ?></span>
                         <?php if ($m['sicil_no']): ?>
-                        <span class="text-muted" style="font-size:.68rem;"><?= e($m['sicil_no']) ?></span>
+                        <span class="ds-text-xs ds-text-muted ds-font-mono"><?= e($m['sicil_no']) ?></span>
                         <?php endif; ?>
                     </button>
-                    <?php endforeach; ?>
-                    <?php if (empty($members)): ?>
-                    <div class="text-center text-muted py-4 small" id="empty-list-msg">
-                        <i class="bi bi-people d-block mb-1 fs-4"></i>Kayıtlı üye bulunmuyor.
+                </li>
+                <?php endforeach; ?>
+                <?php if (empty($members)): ?>
+                <li>
+                    <div class="ds-empty" style="border:0;padding:var(--s-8) var(--s-5);">
+                        <p class="ds-empty__text">Kayıtlı üye bulunmuyor.</p>
                     </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
+                </li>
+                <?php endif; ?>
+            </ul>
+        </section>
+    </aside>
+</div>
 
-    </div><!-- /col-lg-4 -->
+<style>
+    .member-list-item:hover { background: var(--paper-soft); }
+    .member-list-item:focus-visible { outline: 2px solid var(--ink-600); outline-offset: -2px; }
+    .member-filter { letter-spacing: 0.02em; }
+    .member-filter.is-active { background: var(--ink-50); color: var(--ink-800); border: 1px solid var(--ink-200); }
 
-</div><!-- /row -->
+    /* Wizard adım state'leri — gorevli.js eski class'ları kullanacak ama biz DS uyumlu görüntü sağlıyoruz */
+    .step-active .step-circle { border-color: var(--ink-600); color: var(--ink-700); background: var(--ink-50); }
+    .step-done .step-circle   { border-color: var(--ink-600); color: var(--paper-white); background: var(--ink-600); }
+</style>
 
-<script src="/assets/js/gorevli.js"></script>
+<script src="<?= asset('js/gorevli.js') ?>"></script>

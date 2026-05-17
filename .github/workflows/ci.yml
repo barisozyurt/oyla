@@ -35,6 +35,10 @@ jobs:
       - name: Lint PHP syntax
         run: find app config public bin database tests -name "*.php" -print0 | xargs -0 -n1 -P4 php -l > /dev/null
 
+      - name: PHPStan (static analysis)
+        run: vendor/bin/phpstan analyse --no-progress --error-format=github
+        continue-on-error: true
+
       - name: Run unit tests (no DB-bound)
         env:
           APP_ENV: testing

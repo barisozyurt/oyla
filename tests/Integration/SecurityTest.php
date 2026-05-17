@@ -39,6 +39,8 @@ class SecurityTest extends TestCase
                 if ($method === '__construct') continue;
                 if ($method === 'logout') continue;
                 if ($method === 'ensureNonProduction') continue;
+                // GET handler'ları (yeni split controller'larda)
+                if (in_array($method, ['status', 'list'], true)) continue;
 
                 $pattern = "/function\s+{$method}\s*\([^)]*\)[^{]*\{(.*?)(?=\n\s{4}public\s+function|\n\}\s*$)/s";
                 if (preg_match($pattern, $content, $bodyMatch)) {

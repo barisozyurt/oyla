@@ -1,97 +1,102 @@
 <?php
 /**
- * Halka açık makbuz doğrulama sayfası — /oy/dogrula
- *
- * Değişkenler:
- *   $csrf        string
- *   $searched    bool
- *   $code        string (opsiyonel)
- *   $found       bool   (opsiyonel)
- *   $hash_prefix string (opsiyonel) — bulunduysa commitment hash'in ilk 12 karakteri
- *   $created_at  string (opsiyonel)
- *   $malformed   bool   (opsiyonel)
- *   $rate_limited bool  (opsiyonel)
+ * Halka açık makbuz doğrulama — /oy/dogrula (ReceiptController)
+ * Değişkenler: $csrf, $searched, $code, $found, $hash_prefix, $created_at, $malformed, $rate_limited
  */
+$bodyClass = 'voting-mode';
 ?>
-<style>
-    .receipt-page { max-width: 480px; margin: 48px auto; padding: 0 16px; }
-    .receipt-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 28px; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
-    .receipt-icon { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
-    .receipt-icon.ok      { background: #dcfce7; color: #15803d; }
-    .receipt-icon.notfound{ background: #fef3c7; color: #b45309; }
-    .receipt-input { font-family: 'JetBrains Mono', ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; font-size: 1.4rem; text-align: center; min-height: 48px; }
-    .hash-prefix  { font-family: ui-monospace, monospace; word-break: break-all; background: #f1f5f9; padding: 8px 12px; border-radius: 6px; font-size: .85rem; }
-</style>
+<main style="max-width:480px;margin:0 auto;padding:var(--s-12) var(--s-5) var(--s-16);">
 
-<main class="receipt-page" role="main">
-    <h1 class="h4 fw-bold text-center mb-4">Oy Makbuzu Doğrulama</h1>
+    <header class="ds-text-center ds-mb-8">
+        <div style="width:64px;height:64px;background:var(--brass-100);border-radius:50%;display:grid;place-items:center;margin:0 auto var(--s-4);">
+            <i class="bi bi-patch-check" style="font-size:32px;color:var(--brass-700);" aria-hidden="true"></i>
+        </div>
+        <p style="font-family:var(--font-mono);font-size:var(--t-xs);text-transform:uppercase;letter-spacing:0.2em;color:var(--char-400);margin:0 0 var(--s-2);">Halka Açık</p>
+        <h1 class="ds-font-serif" style="font-size:var(--t-2xl);font-weight:700;color:var(--char-800);margin:0 0 var(--s-2);">Oy Makbuzu Doğrulama</h1>
+        <p class="ds-text-sm ds-text-muted" style="margin:0;">8 karakterlik makbuz kodunu girin; oyun sistemde kayıtlı olduğunu doğrulayın.</p>
+    </header>
 
-    <div class="receipt-card">
+    <?php if (!empty($searched)): ?>
+        <?php if (!empty($rate_limited)): ?>
+        <div class="ds-alert ds-alert--warn ds-mb-5" role="alert">
+            <i class="bi bi-hourglass-split ds-alert__icon" aria-hidden="true"></i>
+            <div class="ds-alert__body">
+                <p class="ds-alert__text">Çok fazla deneme yaptınız. Lütfen birkaç dakika sonra tekrar deneyin.</p>
+            </div>
+        </div>
+        <?php elseif (!empty($malformed)): ?>
+        <div class="ds-alert ds-alert--danger ds-mb-5" role="alert">
+            <i class="bi bi-x-circle ds-alert__icon" aria-hidden="true"></i>
+            <div class="ds-alert__body">
+                <p class="ds-alert__text">Makbuz kodu 8 karakter olmalıdır (sadece harf ve rakam).</p>
+            </div>
+        </div>
+        <?php elseif (!empty($found)): ?>
+        <div class="ds-card ds-card--certificate ds-mb-5">
+            <div class="ds-card__inner ds-text-center">
+                <i class="bi bi-shield-check" style="font-size:36px;color:var(--ink-700);" aria-hidden="true"></i>
+                <h2 class="ds-font-serif ds-mt-3" style="font-size:var(--t-xl);font-weight:600;color:var(--char-800);">Makbuz Doğrulandı</h2>
+                <p class="ds-text-sm ds-text-muted" style="margin:var(--s-2) 0 var(--s-5);">Oyunuz sistemde mevcut ve bütünlüğü korunmuş.</p>
 
-        <?php if (!empty($searched) && !empty($rate_limited)): ?>
-            <div class="alert alert-warning" role="alert">
-                Çok fazla deneme yaptınız. Lütfen birkaç dakika sonra tekrar deneyin.
+                <dl style="text-align:left;margin:0;font-size:var(--t-sm);">
+                    <dt class="ds-text-xs ds-text-muted" style="text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Makbuz kodu</dt>
+                    <dd class="ds-font-mono ds-tabular ds-text-body" style="background:var(--paper-soft);padding:8px 12px;border-radius:var(--r-sm);margin:0 0 var(--s-3);font-size:var(--t-md);font-weight:600;"><?= e((string) ($code ?? '')) ?></dd>
+
+                    <dt class="ds-text-xs ds-text-muted" style="text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Commitment hash (önek)</dt>
+                    <dd class="ds-font-mono ds-text-body" style="background:var(--paper-soft);padding:8px 12px;border-radius:var(--r-sm);margin:0 0 var(--s-3);font-size:var(--t-xs);word-break:break-all;"><?= e((string) ($hash_prefix ?? '')) ?>…</dd>
+
+                    <?php if (!empty($created_at)): ?>
+                    <dt class="ds-text-xs ds-text-muted" style="text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Kaydedildi</dt>
+                    <dd class="ds-font-mono ds-tabular ds-text-body" style="background:var(--paper-soft);padding:8px 12px;border-radius:var(--r-sm);margin:0;font-size:var(--t-sm);"><?= e((string) $created_at) ?></dd>
+                    <?php endif; ?>
+                </dl>
             </div>
-        <?php elseif (!empty($searched) && !empty($malformed)): ?>
-            <div class="alert alert-danger" role="alert">
-                Makbuz kodu 8 karakter olmalıdır (sadece harf ve rakam).
+        </div>
+        <?php else: ?>
+        <div class="ds-alert ds-alert--warn ds-mb-5" role="status">
+            <i class="bi bi-question-circle ds-alert__icon" aria-hidden="true"></i>
+            <div class="ds-alert__body">
+                <p class="ds-alert__title">Bu kodla eşleşen makbuz bulunamadı</p>
+                <p class="ds-alert__text">Lütfen kodu kontrol edip tekrar deneyin.</p>
             </div>
-        <?php elseif (!empty($searched) && !empty($found)): ?>
-            <div class="receipt-icon ok" aria-hidden="true">
-                <i class="bi bi-shield-check" style="font-size:32px"></i>
-            </div>
-            <h2 class="h5 text-success text-center fw-bold">Makbuz Doğrulandı</h2>
-            <p class="text-muted text-center small mt-2 mb-3">
-                Oyunuz sistemde mevcut ve bütünlüğü korunmuş.
-            </p>
-            <dl class="mb-0">
-                <dt class="small text-muted">Makbuz kodu</dt>
-                <dd class="hash-prefix"><?= htmlspecialchars((string) ($code ?? ''), ENT_QUOTES) ?></dd>
-                <dt class="small text-muted mt-3">Commitment hash (önek)</dt>
-                <dd class="hash-prefix"><?= htmlspecialchars((string) ($hash_prefix ?? ''), ENT_QUOTES) ?>…</dd>
-                <?php if (!empty($created_at)): ?>
-                <dt class="small text-muted mt-3">Kaydedildi</dt>
-                <dd class="hash-prefix"><?= htmlspecialchars((string) $created_at, ENT_QUOTES) ?></dd>
-                <?php endif; ?>
-            </dl>
-        <?php elseif (!empty($searched) && empty($found)): ?>
-            <div class="receipt-icon notfound" aria-hidden="true">
-                <i class="bi bi-question-circle" style="font-size:32px"></i>
-            </div>
-            <h2 class="h5 text-warning text-center fw-bold">Bu kodla eşleşen makbuz bulunamadı</h2>
-            <p class="text-muted text-center small mt-2">
-                Lütfen kodu kontrol edip tekrar deneyin.
-            </p>
+        </div>
         <?php endif; ?>
+    <?php endif; ?>
 
-        <form method="POST" action="/oy/dogrula" class="mt-3" novalidate>
+    <div class="ds-card">
+        <form method="POST" action="/oy/dogrula" autocomplete="off" novalidate>
             <?= $csrf ?>
-            <label for="code" class="form-label">8 karakterlik makbuz kodu</label>
-            <input type="text"
-                   id="code"
-                   name="code"
-                   value="<?= htmlspecialchars((string) ($code ?? ''), ENT_QUOTES) ?>"
-                   class="form-control receipt-input"
-                   autocomplete="off"
-                   inputmode="text"
-                   pattern="[A-Za-z0-9]{8}"
-                   maxlength="8"
-                   minlength="8"
-                   required
-                   aria-describedby="codeHelp">
-            <div id="codeHelp" class="form-text">SMS ile gönderilen, harf ve rakamlardan oluşan kod.</div>
-            <button type="submit" class="btn btn-primary w-100 mt-3">
-                <i class="bi bi-search me-2" aria-hidden="true"></i>Doğrula
+            <div class="ds-field">
+                <label for="code" class="ds-field__label ds-field__label--required">Makbuz kodu</label>
+                <input type="text"
+                       id="code"
+                       name="code"
+                       class="ds-input ds-input--lg ds-input--mono"
+                       placeholder="A1B2C3D4"
+                       value="<?= e((string) ($code ?? '')) ?>"
+                       maxlength="8"
+                       minlength="8"
+                       inputmode="text"
+                       autocorrect="off"
+                       autocapitalize="characters"
+                       spellcheck="false"
+                       pattern="[A-Za-z0-9]{8}"
+                       required>
+                <p class="ds-field__hint">SMS ile gelen 8 karakterlik kod (harf+rakam).</p>
+            </div>
+            <button type="submit" class="ds-btn ds-btn--primary ds-btn--lg ds-w-full">
+                <i class="bi bi-search" aria-hidden="true"></i>Doğrula
             </button>
         </form>
     </div>
 
-    <p class="text-center text-muted small mt-3">
-        Bu sayfa anonimliği bozmaz — hangi adaylara oy verdiğiniz ASLA gösterilmez.
+    <p class="ds-text-xs ds-text-muted ds-text-center ds-mt-5" style="line-height:1.6;">
+        Bu sayfa anonimliği bozmaz: hangi adaylara oy verdiğiniz <strong>asla</strong> gösterilmez.
     </p>
 </main>
+
 <script>
-    document.getElementById('code').addEventListener('input', function (e) {
+    document.getElementById('code').addEventListener('input', function () {
         this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
     });
 </script>

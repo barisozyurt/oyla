@@ -1,162 +1,45 @@
 <?php
 /**
- * Oy Onay Ekranı — Oylama tamamlandıktan sonra gösterilir
- *
- * Değişkenler:
- *   $public_code  string  — Makbuz kodu (SMS ile gönderilen)
+ * Oy Onay Ekranı
+ * $public_code  string  — Makbuz kodu
  */
-
 $bodyClass = 'voting-mode';
 ?>
-<style>
-    .confirm-wrapper {
-        max-width: 440px;
-        margin: 0 auto;
-        padding: 48px 20px 40px;
-        text-align: center;
-        color: #1e293b;
-    }
+<main style="max-width:480px;margin:0 auto;padding:var(--s-12) var(--s-5);text-align:center;color:var(--char-700);">
 
-    .confirm-icon {
-        width: 96px;
-        height: 96px;
-        background: #dcfce7;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 28px;
-    }
-
-    .confirm-icon svg {
-        width: 52px;
-        height: 52px;
-    }
-
-    .confirm-heading {
-        font-size: 1.5rem;
-        font-weight: 800;
-        color: #1D9E75;
-        margin-bottom: 8px;
-    }
-
-    .confirm-subtext {
-        font-size: 1rem;
-        color: #475569;
-        margin-bottom: 36px;
-    }
-
-    .receipt-box {
-        background: #f8fafc;
-        border: 2px dashed #1D9E75;
-        border-radius: 12px;
-        padding: 24px 20px;
-        margin-bottom: 28px;
-    }
-
-    .receipt-label {
-        font-size: .8rem;
-        text-transform: uppercase;
-        letter-spacing: .08em;
-        color: #64748b;
-        margin-bottom: 8px;
-        font-weight: 600;
-    }
-
-    .receipt-code {
-        font-size: 2.2rem;
-        font-weight: 900;
-        letter-spacing: .15em;
-        color: #1D9E75;
-        font-variant-numeric: tabular-nums;
-        word-break: break-all;
-    }
-
-    .receipt-note {
-        font-size: .82rem;
-        color: #475569;
-        margin-top: 14px;
-        line-height: 1.5;
-    }
-
-    .verify-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        color: #1D9E75;
-        font-weight: 600;
-        font-size: .9rem;
-        text-decoration: none;
-        padding: 10px 20px;
-        border: 2px solid #dbeafe;
-        border-radius: 8px;
-        background: #eff6ff;
-        transition: background .15s;
-    }
-    .verify-link:hover { background: #dbeafe; text-decoration: none; }
-
-    .sms-notice {
-        font-size: .82rem;
-        color: #64748b;
-        margin-top: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-    }
-</style>
-
-<div class="confirm-wrapper">
-
-    <!-- Büyük onay ikonu -->
-    <div class="confirm-icon">
-        <svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="26" cy="26" r="26" fill="#16a34a"/>
-            <path d="M14 26.5L21.5 34L38 18"
-                  stroke="white" stroke-width="3.5"
-                  stroke-linecap="round" stroke-linejoin="round"/>
+    <div style="width:88px;height:88px;background:var(--ink-50);border-radius:50%;display:grid;place-items:center;margin:0 auto var(--s-6);border:2px solid var(--ink-200);">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--ink-700)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12.5L10 17.5L20 7"/>
         </svg>
     </div>
 
-    <h1 class="confirm-heading">Oyunuz başarıyla kullanıldı</h1>
-    <p class="confirm-subtext">
-        Oyunuz güvenli biçimde kaydedildi ve makbuz kodunuz<br>
-        SMS ile telefonunuza gönderildi.
+    <p style="font-family:var(--font-mono);font-size:var(--t-xs);text-transform:uppercase;letter-spacing:0.2em;color:var(--ink-700);margin:0 0 var(--s-3);">
+        Tamamlandı
+    </p>
+    <h1 class="ds-font-serif" style="font-size:var(--t-3xl);font-weight:700;color:var(--char-800);margin:0 0 var(--s-3);">
+        Oyunuz kullanıldı
+    </h1>
+    <p class="ds-text-muted ds-mb-8">
+        Oyunuz kriptografik olarak güvence altında kaydedildi. Makbuz kodunuz SMS ile telefonunuza gönderildi.
     </p>
 
-    <!-- Makbuz kodu kutusu -->
-    <div class="receipt-box">
-        <div class="receipt-label">Makbuz Kodunuz</div>
-        <div class="receipt-code"><?= e($public_code) ?></div>
-        <div class="receipt-note">
-            Bu kodu saklayınız.<br>
-            Oy doğrulama için kullanabilirsiniz.
+    <div class="ds-card ds-card--certificate ds-mb-6">
+        <div class="ds-card__inner">
+            <p class="ds-text-xs ds-text-muted" style="text-transform:uppercase;letter-spacing:0.15em;margin:0 0 var(--s-3);">Makbuz Kodunuz</p>
+            <p class="ds-font-mono ds-tabular" style="font-size:var(--t-3xl);font-weight:700;color:var(--ink-700);letter-spacing:0.15em;margin:0;word-break:break-all;">
+                <?= e($public_code) ?>
+            </p>
+            <p class="ds-text-xs ds-text-muted ds-mt-4" style="line-height:1.6;">
+                Bu kodu saklayın. Oy doğrulama sayfasında oyunuzun kayıt altına alındığını kontrol edebilirsiniz.
+            </p>
         </div>
     </div>
 
-    <!-- Doğrulama bağlantısı -->
-    <a href="/oy/verify" class="verify-link">
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24"
-             xmlns="http://www.w3.org/2000/svg">
-            <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944
-                     a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591
-                     3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042
-                     -.133-2.052-.382-3.016z"
-                  stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Makbuz Kodunu Doğrula
+    <a href="/oy/dogrula" class="ds-btn ds-btn--secondary ds-w-full ds-mb-4">
+        <i class="bi bi-shield-check" aria-hidden="true"></i>Makbuz Kodunu Doğrula
     </a>
 
-    <div class="sms-notice">
-        <svg width="14" height="14" fill="none" viewBox="0 0 24 24"
-             xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0
-                     00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
-                  stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Makbuz kodu SMS ile gönderildi
-    </div>
-
-</div>
+    <p class="ds-text-xs ds-text-muted ds-mt-6">
+        <i class="bi bi-phone" aria-hidden="true"></i> Makbuz kodu SMS olarak telefonunuza gönderildi.
+    </p>
+</main>

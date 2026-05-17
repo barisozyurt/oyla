@@ -1,79 +1,38 @@
+<?php
+/**
+ * Fullscreen layout — oylama, perde, hata sayfaları için.
+ * Navbar/footer YOK. data-theme body sınıfından okunur.
+ */
+$bodyClass = $bodyClass ?? '';
+$theme = str_contains($bodyClass, 'voting-mode') ? 'light' : 'dark';
+?>
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" data-theme="<?= e($theme) ?>">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="<?= e($_SESSION['csrf_token'] ?? '') ?>">
-    <meta name="description" content="Oyla — Dijital Seçim Yönetim Sistemi">
-    <title><?= e($pageTitle ?? 'Oyla') ?></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="csrf-token" content="<?= e(csrf_token()) ?>">
+    <meta name="theme-color" content="<?= $theme === 'dark' ? '#0c1217' : '#faf8f3' ?>">
+    <title><?= e($pageTitle ?? 'Oyla') ?> · Oyla</title>
 
-    <!-- Google Fonts: Source Sans 3 -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap"
-    >
-    <!-- Bootstrap 5.3 -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <!-- Bootstrap Icons -->
-    <link
-        rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-    >
-    <!-- Uygulama stilleri -->
+    <link rel="icon" type="image/svg+xml" href="<?= asset('img/logo.svg') ?>">
+    <link rel="stylesheet" href="<?= asset('css/design-system.css') ?>">
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <style>
-        /* Fullscreen layout: no scrollbar flash, dark-capable background */
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-        }
-        body {
-            --oyla-fs-bg:    #111827;
-            --oyla-fs-color: #f9fafb;
-            background-color: var(--oyla-fs-bg);
-            color: var(--oyla-fs-color);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            font-family: "Source Sans 3", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-        }
-        /* Perde (curtain) modu: büyük font, yüksek kontrast */
-        body.curtain-mode {
-            --oyla-fs-bg:    #0a0e1a;
-            --oyla-fs-color: #ffffff;
-            --oyla-primary:  #2dbe8c;
-            --oyla-primary-dark: #1D9E75;
-            font-size: 1.15rem;
-        }
-        /* Oylama modu: açık arka plan, mobil öncelikli */
-        body.voting-mode {
-            --oyla-fs-bg:    #f8f9fa;
-            --oyla-fs-color: #1e293b;
-            overflow: auto;
-        }
-        /* Reduce motion */
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
+        html, body { margin: 0; padding: 0; }
+        body { min-height: 100vh; }
+        /* Voting mode = light scroll OK */
+        body.voting-mode { overflow-x: hidden; }
     </style>
 </head>
-<body class="<?= e($bodyClass ?? '') ?>">
+<body class="<?= e($bodyClass) ?>">
 
 <?= $_content ?? '' ?>
 
-<!-- Bootstrap 5.3 JS Bundle -->
-<script
-    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-></script>
+<div class="ds-toast-stack" id="ds-toast-stack" aria-live="polite" aria-atomic="false"></div>
+
 <script src="<?= asset('js/app.js') ?>"></script>
 </body>
 </html>

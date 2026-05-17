@@ -1,0 +1,1192 @@
+/* ============================================================
+   Oyla — Design System
+   "Türk dernek arşivi" karakteri.
+   Source Serif + IBM Plex Sans, ivory kâğıt arka plan, mühür yeşili + pirinç.
+   Swiss-modernist hizalama. AI dashboard kalıbından uzak.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* ============================================================
+   1. Tokens
+   ============================================================ */
+:root {
+    /* Brand — single dominant green (mühür/Cumhuriyet) + brass aksen */
+    --ink-50:  #f3f7f4;
+    --ink-100: #d8e7df;
+    --ink-200: #b0d0bd;
+    --ink-300: #7eb597;
+    --ink-400: #4d9974;
+    --ink-500: #2d8158;     /* primary text-on-light tone */
+    --ink-600: #1f7a4c;     /* PRIMARY — Cumhuriyet yeşili */
+    --ink-700: #176140;
+    --ink-800: #114a32;
+    --ink-900: #0c3724;
+
+    /* Brass — vurgu için (mühür/altın baskı çağrışımı) */
+    --brass-100: #f3eada;
+    --brass-300: #d5b78a;
+    --brass-500: #b89968;
+    --brass-600: #a08055;
+    --brass-700: #7a623f;
+
+    /* Charcoal — metin/footer */
+    --char-50:  #f8f7f5;
+    --char-100: #e9e7e2;
+    --char-200: #d4d1c8;
+    --char-300: #a8a49a;
+    --char-400: #6e6b62;
+    --char-500: #4a4842;
+    --char-600: #2e2d28;
+    --char-700: #1a1f2e;
+    --char-800: #131722;
+    --char-900: #0a0d14;
+
+    /* Paper — kağıt rengi (ivory) */
+    --paper:        #faf8f3;
+    --paper-soft:   #f3f0e8;
+    --paper-deep:   #ede9dc;
+    --paper-white:  #ffffff;
+
+    /* Hairline borders */
+    --line:          #e0dcce;
+    --line-strong:   #c8c3b1;
+    --line-dark:     var(--char-200);
+
+    /* Semantic accents */
+    --warn:          #b8761f;     /* eski mühür mürekkep koyusu */
+    --warn-soft:     #fbf2dd;
+    --danger:        #a32a1f;     /* mürekkep kırmızısı */
+    --danger-soft:   #fbe9e7;
+    --info:          #1d4e89;
+    --info-soft:     #e8eef7;
+
+    /* Statü üçlüsü */
+    --status-waiting: var(--char-400);
+    --status-signed:  var(--brass-600);
+    --status-done:    var(--ink-600);
+
+    /* RGB (rgba kullanımı için) */
+    --ink-rgb:    31, 122, 76;
+    --char-rgb:   26, 31, 46;
+    --brass-rgb:  184, 153, 104;
+
+    /* Tipografi */
+    --font-serif:   'Source Serif 4', 'Source Serif Pro', Georgia, 'Times New Roman', serif;
+    --font-sans:    'IBM Plex Sans', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --font-mono:    'JetBrains Mono', 'SF Mono', Consolas, monospace;
+
+    /* Type scale — restrained, 1.2 ratio */
+    --t-xs:    0.75rem;
+    --t-sm:    0.8125rem;
+    --t-base:  0.9375rem;     /* 15px — okuma akışı için */
+    --t-md:    1rem;
+    --t-lg:    1.125rem;
+    --t-xl:    1.375rem;
+    --t-2xl:   1.75rem;
+    --t-3xl:   2.125rem;
+    --t-4xl:   2.625rem;
+    --t-5xl:   3.25rem;
+
+    /* Spacing — 4px modülü, Swiss disiplini */
+    --s-1: 0.25rem;
+    --s-2: 0.5rem;
+    --s-3: 0.75rem;
+    --s-4: 1rem;
+    --s-5: 1.25rem;
+    --s-6: 1.5rem;
+    --s-8: 2rem;
+    --s-10: 2.5rem;
+    --s-12: 3rem;
+    --s-16: 4rem;
+    --s-20: 5rem;
+
+    /* Köşeler — KLASİK, abartısız */
+    --r-xs: 2px;
+    --r-sm: 4px;
+    --r-md: 6px;
+    --r-lg: 8px;
+    --r-xl: 12px;
+
+    /* Gölge — yumuşak, kâğıt üzerinde, kabarık değil */
+    --shadow-paper: 0 1px 0 var(--line);
+    --shadow-soft:  0 1px 2px rgba(var(--char-rgb), 0.05), 0 1px 1px rgba(var(--char-rgb), 0.04);
+    --shadow-card:  0 1px 3px rgba(var(--char-rgb), 0.06), 0 1px 2px rgba(var(--char-rgb), 0.04);
+    --shadow-pop:   0 6px 16px -6px rgba(var(--char-rgb), 0.12);
+    --shadow-modal: 0 12px 32px -8px rgba(var(--char-rgb), 0.22);
+
+    /* Transition — sadece 150-180ms, başka hareket yok */
+    --ease:        cubic-bezier(0.4, 0.0, 0.2, 1);
+    --t-fast:      150ms;
+    --t-medium:    180ms;
+
+    /* z-index */
+    --z-nav: 50;
+    --z-modal: 100;
+    --z-toast: 200;
+}
+
+/* Dark theme — sadece curtain (sonuç projeksiyonu) ekranı için */
+[data-theme="dark"] {
+    --paper:        #0c1217;
+    --paper-soft:   #11181f;
+    --paper-deep:   #161e27;
+    --paper-white:  #1a232d;
+    --line:         #1f2a36;
+    --line-strong:  #2b3a4a;
+    --char-700:     #e9e7e2;
+    --char-600:     #d4d1c8;
+    --char-500:     #a8a49a;
+    --char-400:     #87837a;
+}
+
+/* ============================================================
+   2. Base
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+body {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: var(--t-base);
+    line-height: 1.65;
+    color: var(--char-700);
+    background-color: var(--paper);
+    font-feature-settings: "kern", "ss01", "ss02";
+}
+
+/* Başlıklar = serif (kurumsal/edebi karakter) */
+h1, h2, h3, h4, h5, h6 {
+    margin: 0 0 var(--s-3);
+    font-family: var(--font-serif);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--char-800);
+}
+h1 { font-size: clamp(var(--t-3xl), 3.5vw + 0.5rem, var(--t-5xl)); font-weight: 700; }
+h2 { font-size: clamp(var(--t-2xl), 2.5vw + 0.3rem, var(--t-4xl)); }
+h3 { font-size: var(--t-2xl); }
+h4 { font-size: var(--t-xl); }
+h5 { font-size: var(--t-lg); font-weight: 600; }
+h6 {
+    font-family: var(--font-sans);
+    font-size: var(--t-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--char-400);
+}
+
+p { margin: 0 0 var(--s-4); }
+p:last-child { margin-bottom: 0; }
+
+a {
+    color: var(--ink-700);
+    text-decoration: underline;
+    text-decoration-color: var(--ink-200);
+    text-underline-offset: 3px;
+    transition: color var(--t-fast) var(--ease);
+}
+a:hover {
+    color: var(--ink-800);
+    text-decoration-color: var(--ink-500);
+}
+
+strong, b { font-weight: 600; color: var(--char-800); }
+
+small { font-size: var(--t-xs); }
+
+code, pre, kbd, samp {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+    font-feature-settings: "zero", "ss01";
+}
+code {
+    padding: 0.1em 0.35em;
+    background: var(--paper-deep);
+    border-radius: var(--r-sm);
+    color: var(--char-600);
+}
+
+/* Focus — net ama agresif değil */
+:focus-visible {
+    outline: 2px solid var(--ink-600);
+    outline-offset: 2px;
+    border-radius: var(--r-sm);
+}
+
+::selection {
+    background: var(--ink-200);
+    color: var(--ink-900);
+}
+
+img { max-width: 100%; height: auto; }
+
+/* HR — süs glyph karakteriyle */
+hr.ds-rule {
+    position: relative;
+    border: 0;
+    height: 1px;
+    background: var(--line);
+    margin: var(--s-12) 0;
+    overflow: visible;
+}
+hr.ds-rule::after {
+    content: '❦';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--paper);
+    padding: 0 var(--s-3);
+    color: var(--brass-500);
+    font-size: var(--t-md);
+}
+
+/* ============================================================
+   3. Layout
+   ============================================================ */
+.ds-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--paper);
+}
+
+.ds-main {
+    flex: 1;
+    padding: var(--s-8) 0 var(--s-12);
+}
+
+.ds-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--s-5);
+}
+.ds-container--narrow { max-width: 760px; }
+.ds-container--wide   { max-width: 1400px; }
+
+/* ============================================================
+   4. Navbar — solid, hairline alt çizgi, sade
+   ============================================================ */
+.ds-nav {
+    background: var(--paper-white);
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    z-index: var(--z-nav);
+}
+
+.ds-nav__inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: var(--s-8);
+    padding: var(--s-3) var(--s-5);
+    min-height: 64px;
+}
+
+.ds-nav__brand {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    text-decoration: none;
+    color: var(--char-800);
+    flex-shrink: 0;
+}
+.ds-nav__brand:hover {
+    color: var(--ink-700);
+    text-decoration: none;
+}
+.ds-nav__brand__mark {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+}
+.ds-nav__brand__name {
+    font-family: var(--font-serif);
+    font-weight: 700;
+    font-size: var(--t-xl);
+    letter-spacing: -0.01em;
+    line-height: 1;
+}
+.ds-nav__brand__tag {
+    display: block;
+    font-family: var(--font-sans);
+    font-weight: 400;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--char-400);
+    margin-top: 2px;
+}
+
+.ds-nav__links {
+    display: flex;
+    align-items: center;
+    gap: var(--s-1);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex: 1;
+}
+.ds-nav__link {
+    padding: var(--s-2) var(--s-4);
+    color: var(--char-500);
+    font-size: var(--t-sm);
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: var(--r-sm);
+    transition: color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+}
+.ds-nav__link:hover {
+    color: var(--char-800);
+    background: var(--paper-soft);
+    text-decoration: none;
+}
+.ds-nav__link--active {
+    color: var(--ink-700);
+    background: var(--paper-soft);
+    box-shadow: inset 0 -2px 0 var(--ink-600);
+    border-radius: var(--r-sm) var(--r-sm) 0 0;
+}
+
+.ds-nav__user {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    color: var(--char-700);
+    font-size: var(--t-sm);
+    font-weight: 500;
+    text-decoration: none;
+    padding: var(--s-2) var(--s-3);
+    border-radius: var(--r-sm);
+    transition: background var(--t-fast) var(--ease);
+}
+.ds-nav__user:hover { background: var(--paper-soft); text-decoration: none; color: var(--char-800); }
+.ds-nav__user__chip {
+    width: 28px; height: 28px;
+    background: var(--ink-700);
+    color: var(--paper-white);
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-weight: 600;
+    font-size: var(--t-xs);
+    text-transform: uppercase;
+    font-family: var(--font-sans);
+}
+
+.ds-nav__toggle {
+    display: none;
+    width: 40px; height: 40px;
+    border: 1px solid var(--line);
+    background: var(--paper-white);
+    color: var(--char-700);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Dropdown */
+.ds-nav__group { position: relative; }
+.ds-nav__menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 220px;
+    background: var(--paper-white);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-pop);
+    padding: var(--s-2);
+    margin: 0;
+    list-style: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: opacity var(--t-fast), transform var(--t-fast), visibility var(--t-fast);
+}
+.ds-nav__group:hover .ds-nav__menu,
+.ds-nav__menu--open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+.ds-nav__menu a {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    padding: var(--s-2) var(--s-3);
+    border-radius: var(--r-sm);
+    font-size: var(--t-sm);
+    font-weight: 500;
+    color: var(--char-700);
+    text-decoration: none;
+}
+.ds-nav__menu a:hover {
+    background: var(--paper-soft);
+    color: var(--ink-700);
+    text-decoration: none;
+}
+.ds-nav__menu hr {
+    border: 0;
+    border-top: 1px solid var(--line);
+    margin: var(--s-1) 0;
+}
+
+@media (max-width: 900px) {
+    .ds-nav__inner { gap: var(--s-3); }
+    .ds-nav__brand__tag { display: none; }
+    .ds-nav__links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0; right: 0;
+        flex-direction: column;
+        background: var(--paper-white);
+        border-bottom: 1px solid var(--line);
+        padding: var(--s-3);
+        align-items: stretch;
+        gap: var(--s-1);
+    }
+    .ds-nav__links--open { display: flex; }
+    .ds-nav__toggle { display: inline-flex; }
+}
+
+/* ============================================================
+   5. Page header (section başlık şeridi)
+   ============================================================ */
+.ds-page-header {
+    padding: var(--s-6) 0 var(--s-8);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: var(--s-8);
+}
+.ds-page-header__eyebrow {
+    font-family: var(--font-sans);
+    font-size: var(--t-xs);
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--char-400);
+    margin-bottom: var(--s-2);
+}
+.ds-page-header__title {
+    font-family: var(--font-serif);
+    font-size: clamp(var(--t-3xl), 3vw + 0.4rem, var(--t-4xl));
+    font-weight: 700;
+    margin: 0;
+    color: var(--char-800);
+}
+.ds-page-header__lead {
+    margin: var(--s-3) 0 0;
+    max-width: 720px;
+    color: var(--char-500);
+    font-size: var(--t-md);
+}
+.ds-page-header__row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--s-5);
+    flex-wrap: wrap;
+}
+
+/* ============================================================
+   6. Card (sertifika çerçevesi)
+   ============================================================ */
+.ds-card {
+    background: var(--paper-white);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: var(--s-6);
+    box-shadow: var(--shadow-soft);
+    transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.ds-card--interactive {
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+}
+.ds-card--interactive:hover {
+    border-color: var(--ink-400);
+    box-shadow: var(--shadow-card);
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Çift hairline çerçeve — kart içeriği için klasik etkili variant */
+.ds-card--certificate {
+    padding: var(--s-3);
+    border-color: var(--brass-500);
+}
+.ds-card--certificate > .ds-card__inner {
+    border: 1px solid var(--brass-500);
+    border-radius: var(--r-sm);
+    padding: var(--s-6);
+    background: var(--paper-white);
+}
+
+.ds-card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--s-4);
+    margin-bottom: var(--s-5);
+    padding-bottom: var(--s-4);
+    border-bottom: 1px solid var(--line);
+}
+.ds-card__title {
+    font-family: var(--font-serif);
+    font-size: var(--t-lg);
+    font-weight: 600;
+    margin: 0;
+    color: var(--char-800);
+}
+.ds-card__subtitle {
+    font-size: var(--t-xs);
+    color: var(--char-400);
+    margin: var(--s-1) 0 0;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* ============================================================
+   7. Stat — Swiss minimal, tabular numbers
+   ============================================================ */
+.ds-stat {
+    background: var(--paper-white);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    padding: var(--s-6);
+    position: relative;
+    transition: border-color var(--t-fast) var(--ease);
+}
+.ds-stat:hover { border-color: var(--line-strong); }
+
+.ds-stat__label {
+    font-family: var(--font-sans);
+    font-size: var(--t-xs);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--char-400);
+    margin: 0 0 var(--s-4);
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+}
+.ds-stat__value {
+    font-family: var(--font-serif);
+    font-size: var(--t-4xl);
+    font-weight: 600;
+    line-height: 1;
+    color: var(--char-800);
+    margin: 0;
+    font-variant-numeric: tabular-nums lining-nums;
+    letter-spacing: -0.02em;
+}
+.ds-stat__sub {
+    margin: var(--s-3) 0 0;
+    font-size: var(--t-xs);
+    color: var(--char-500);
+    font-variant-numeric: tabular-nums;
+}
+.ds-stat__sub strong { color: var(--char-700); font-weight: 600; }
+
+/* Renk varyasyonları — sadece label dot rengi değişir */
+.ds-stat--ink   .ds-stat__label::before { content: ''; width: 8px; height: 8px; background: var(--ink-600); border-radius: 50%; display: inline-block; }
+.ds-stat--brass .ds-stat__label::before { content: ''; width: 8px; height: 8px; background: var(--brass-500); border-radius: 50%; display: inline-block; }
+.ds-stat--warn  .ds-stat__label::before { content: ''; width: 8px; height: 8px; background: var(--warn); border-radius: 50%; display: inline-block; }
+.ds-stat--char  .ds-stat__label::before { content: ''; width: 8px; height: 8px; background: var(--char-500); border-radius: 50%; display: inline-block; }
+
+/* ============================================================
+   8. Buton
+   ============================================================ */
+.ds-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s-2);
+    padding: 0 var(--s-5);
+    min-height: 40px;
+    font-family: var(--font-sans);
+    font-size: var(--t-sm);
+    font-weight: 600;
+    line-height: 1;
+    text-decoration: none;
+    border: 1px solid transparent;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    transition: background var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+    white-space: nowrap;
+    user-select: none;
+    letter-spacing: 0.01em;
+}
+.ds-btn:disabled, .ds-btn[aria-disabled="true"] {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Primary — düz katı yeşil, gradient YOK */
+.ds-btn--primary {
+    background: var(--ink-700);
+    color: var(--paper-white);
+    border-color: var(--ink-700);
+}
+.ds-btn--primary:hover:not(:disabled) {
+    background: var(--ink-800);
+    border-color: var(--ink-800);
+    color: var(--paper-white);
+    text-decoration: none;
+}
+
+.ds-btn--secondary {
+    background: var(--paper-white);
+    color: var(--char-700);
+    border-color: var(--line-strong);
+}
+.ds-btn--secondary:hover:not(:disabled) {
+    border-color: var(--char-400);
+    color: var(--char-800);
+    background: var(--paper-soft);
+    text-decoration: none;
+}
+
+.ds-btn--ghost {
+    background: transparent;
+    color: var(--char-500);
+    border-color: transparent;
+}
+.ds-btn--ghost:hover:not(:disabled) {
+    color: var(--char-800);
+    background: var(--paper-soft);
+    text-decoration: none;
+}
+
+.ds-btn--danger {
+    background: var(--danger);
+    color: var(--paper-white);
+    border-color: var(--danger);
+}
+.ds-btn--danger:hover:not(:disabled) {
+    background: #862218;
+    border-color: #862218;
+    color: var(--paper-white);
+    text-decoration: none;
+}
+
+.ds-btn--brass {
+    background: var(--brass-600);
+    color: var(--paper-white);
+    border-color: var(--brass-600);
+}
+.ds-btn--brass:hover:not(:disabled) {
+    background: var(--brass-700);
+    border-color: var(--brass-700);
+    color: var(--paper-white);
+    text-decoration: none;
+}
+
+.ds-btn--sm    { min-height: 32px; padding: 0 var(--s-3); font-size: var(--t-xs); }
+.ds-btn--lg    { min-height: 48px; padding: 0 var(--s-6); font-size: var(--t-md); }
+.ds-btn--block { width: 100%; }
+.ds-btn--icon  { padding: 0; width: 40px; aspect-ratio: 1; }
+
+/* ============================================================
+   9. Badge / Pill
+   ============================================================ */
+.ds-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-1);
+    padding: 2px var(--s-2);
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.6;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    background: var(--paper-deep);
+    color: var(--char-600);
+    border: 1px solid var(--line);
+}
+.ds-badge--ink     { background: var(--ink-50);    color: var(--ink-800);  border-color: var(--ink-100); }
+.ds-badge--warn    { background: var(--warn-soft); color: #6f4910;         border-color: #ecdcb8; }
+.ds-badge--danger  { background: var(--danger-soft); color: var(--danger); border-color: #f0c8c4; }
+.ds-badge--info    { background: var(--info-soft); color: var(--info);     border-color: #c8d6e8; }
+.ds-badge--brass   { background: var(--brass-100); color: var(--brass-700); border-color: var(--brass-300); }
+.ds-badge--neutral { background: var(--paper-soft); color: var(--char-500); border-color: var(--line); }
+
+.ds-badge--dot::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+.ds-badge--live::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ink-600);
+    animation: ds-pulse-dot 1.5s infinite;
+}
+@keyframes ds-pulse-dot {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.35; }
+}
+
+/* ============================================================
+   10. Form
+   ============================================================ */
+.ds-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-2);
+    margin-bottom: var(--s-5);
+}
+.ds-field__label {
+    font-size: var(--t-xs);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--char-500);
+}
+.ds-field__label--required::after {
+    content: '*';
+    color: var(--danger);
+    margin-left: 2px;
+}
+.ds-field__hint {
+    font-size: var(--t-xs);
+    color: var(--char-400);
+    line-height: 1.5;
+}
+.ds-field__error {
+    font-size: var(--t-xs);
+    color: var(--danger);
+    line-height: 1.5;
+}
+
+.ds-input,
+.ds-select,
+.ds-textarea {
+    display: block;
+    width: 100%;
+    padding: 10px var(--s-4);
+    font-family: var(--font-sans);
+    font-size: var(--t-base);
+    color: var(--char-800);
+    background: var(--paper-white);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-sm);
+    line-height: 1.4;
+    min-height: 40px;
+    transition: border-color var(--t-fast) var(--ease), box-shadow var(--t-fast) var(--ease);
+}
+.ds-input:hover,
+.ds-select:hover,
+.ds-textarea:hover { border-color: var(--char-300); }
+.ds-input:focus,
+.ds-select:focus,
+.ds-textarea:focus {
+    outline: none;
+    border-color: var(--ink-600);
+    box-shadow: 0 0 0 3px rgba(var(--ink-rgb), 0.12);
+}
+.ds-input--error { border-color: var(--danger); }
+.ds-input--lg { padding: 14px var(--s-5); font-size: var(--t-lg); min-height: 56px; }
+.ds-input--mono { font-family: var(--font-mono); letter-spacing: 0.1em; }
+
+/* ============================================================
+   11. Tablo — line-only, hairline grid
+   ============================================================ */
+.ds-table-wrap {
+    background: var(--paper-white);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    overflow-x: auto;
+}
+.ds-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--t-sm);
+}
+.ds-table thead {
+    background: var(--paper-soft);
+    border-bottom: 2px solid var(--char-200);
+}
+.ds-table th {
+    padding: var(--s-3) var(--s-5);
+    text-align: left;
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--char-400);
+    white-space: nowrap;
+}
+.ds-table td {
+    padding: var(--s-4) var(--s-5);
+    border-bottom: 1px solid var(--line);
+    color: var(--char-700);
+    vertical-align: middle;
+}
+.ds-table tbody tr:last-child td { border-bottom: 0; }
+.ds-table tbody tr:hover { background: var(--paper-soft); }
+.ds-table tbody tr.is-empty td { color: var(--char-400); text-align: center; padding: var(--s-12); font-style: italic; }
+
+/* ============================================================
+   12. Avatar — sade, çerçeveli
+   ============================================================ */
+.ds-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--paper-deep);
+    color: var(--char-500);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: var(--t-xs);
+    flex-shrink: 0;
+    overflow: hidden;
+    border: 1px solid var(--line);
+}
+.ds-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.ds-avatar--sm { width: 28px; height: 28px; font-size: 10px; }
+.ds-avatar--md { width: 44px; height: 44px; font-size: var(--t-sm); }
+.ds-avatar--lg { width: 64px; height: 64px; font-size: var(--t-base); }
+.ds-avatar--ink { background: var(--ink-700); color: var(--paper-white); border-color: var(--ink-700); }
+.ds-avatar--brass { background: var(--brass-600); color: var(--paper-white); border-color: var(--brass-600); }
+
+/* ============================================================
+   13. Progress — ince çubuk, kâğıt üzerinde mürekkep akışı
+   ============================================================ */
+.ds-progress {
+    width: 100%;
+    height: 6px;
+    background: var(--paper-deep);
+    border-radius: 2px;
+    overflow: hidden;
+}
+.ds-progress__bar {
+    height: 100%;
+    background: var(--ink-700);
+    border-radius: 2px;
+    transition: width 450ms var(--ease);
+}
+.ds-progress--lg { height: 10px; }
+.ds-progress__bar--brass { background: var(--brass-600); }
+.ds-progress__bar--warn  { background: var(--warn); }
+
+/* Ring */
+.ds-ring { width: 80px; height: 80px; position: relative; }
+.ds-ring svg { transform: rotate(-90deg); }
+.ds-ring__track,
+.ds-ring__fill { fill: none; stroke-width: 6; stroke-linecap: butt; }
+.ds-ring__track { stroke: var(--paper-deep); }
+.ds-ring__fill  { stroke: var(--ink-700); transition: stroke-dashoffset 450ms var(--ease); }
+.ds-ring__label {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    font-family: var(--font-serif);
+    font-weight: 600;
+    font-size: var(--t-lg);
+    color: var(--char-800);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   14. Alert — kurumsal, ikon + tek satır mesaj
+   ============================================================ */
+.ds-alert {
+    display: flex;
+    gap: var(--s-3);
+    padding: var(--s-3) var(--s-4);
+    border-left: 3px solid;
+    border-radius: var(--r-sm);
+    background: var(--paper-white);
+    margin-bottom: var(--s-4);
+    font-size: var(--t-sm);
+}
+.ds-alert__icon { flex-shrink: 0; line-height: 1.4; }
+.ds-alert__body { flex: 1; }
+.ds-alert__title { font-weight: 600; margin: 0 0 2px; color: var(--char-800); }
+.ds-alert__text { margin: 0; color: var(--char-600); }
+
+.ds-alert--success { border-color: var(--ink-600);  background: var(--ink-50); }
+.ds-alert--warn    { border-color: var(--warn);     background: var(--warn-soft); }
+.ds-alert--danger  { border-color: var(--danger);   background: var(--danger-soft); }
+.ds-alert--info    { border-color: var(--info);     background: var(--info-soft); }
+
+/* ============================================================
+   15. Empty — kurumsal "boş", abartısız
+   ============================================================ */
+.ds-empty {
+    text-align: center;
+    padding: var(--s-16) var(--s-5);
+    border: 1px dashed var(--line-strong);
+    border-radius: var(--r-md);
+    background: var(--paper-soft);
+}
+.ds-empty__mark {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto var(--s-5);
+    color: var(--brass-500);
+    opacity: 0.7;
+}
+.ds-empty__title {
+    font-family: var(--font-serif);
+    font-size: var(--t-xl);
+    font-weight: 600;
+    margin: 0 0 var(--s-2);
+    color: var(--char-700);
+}
+.ds-empty__text {
+    color: var(--char-500);
+    max-width: 400px;
+    margin: 0 auto var(--s-5);
+    font-size: var(--t-sm);
+}
+
+/* ============================================================
+   16. Toast
+   ============================================================ */
+.ds-toast-stack {
+    position: fixed;
+    bottom: var(--s-5);
+    right: var(--s-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+    z-index: var(--z-toast);
+    max-width: 360px;
+}
+.ds-toast {
+    background: var(--char-800);
+    color: var(--paper);
+    padding: var(--s-3) var(--s-4);
+    border-radius: var(--r-sm);
+    box-shadow: var(--shadow-modal);
+    display: flex;
+    gap: var(--s-3);
+    font-size: var(--t-sm);
+    align-items: flex-start;
+    border-left: 3px solid var(--char-400);
+}
+.ds-toast--success { border-left-color: var(--ink-400); }
+.ds-toast--danger  { border-left-color: #e76e5e; }
+.ds-toast--warn    { border-left-color: var(--brass-500); }
+.ds-toast__close {
+    background: transparent;
+    color: currentColor;
+    border: none;
+    cursor: pointer;
+    opacity: 0.6;
+    padding: 0;
+    font-size: var(--t-lg);
+    line-height: 1;
+}
+.ds-toast__close:hover { opacity: 1; }
+
+/* ============================================================
+   17. Modal
+   ============================================================ */
+.ds-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(var(--char-rgb), 0.45);
+    z-index: var(--z-modal);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: var(--s-5);
+}
+.ds-modal-backdrop--open { display: flex; }
+.ds-modal {
+    background: var(--paper-white);
+    border-radius: var(--r-md);
+    padding: var(--s-8);
+    max-width: 480px;
+    width: 100%;
+    box-shadow: var(--shadow-modal);
+}
+.ds-modal__title {
+    font-family: var(--font-serif);
+    font-size: var(--t-2xl);
+    margin: 0 0 var(--s-3);
+}
+
+/* ============================================================
+   18. Skeleton
+   ============================================================ */
+.ds-skel {
+    background: linear-gradient(90deg, var(--paper-deep) 25%, var(--paper-soft) 50%, var(--paper-deep) 75%);
+    background-size: 200% 100%;
+    animation: ds-skel-pulse 1.4s linear infinite;
+    border-radius: var(--r-sm);
+    display: block;
+}
+@keyframes ds-skel-pulse {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+.ds-skel--text  { height: 12px; margin-bottom: var(--s-2); }
+.ds-skel--title { height: 22px; width: 60%; margin-bottom: var(--s-3); }
+
+/* ============================================================
+   19. Utilities — ihtiyaç kadarı
+   ============================================================ */
+.ds-flex { display: flex; }
+.ds-inline-flex { display: inline-flex; }
+.ds-grid { display: grid; }
+.ds-block { display: block; }
+.ds-hidden { display: none; }
+.ds-items-center { align-items: center; }
+.ds-items-start { align-items: flex-start; }
+.ds-items-end { align-items: flex-end; }
+.ds-justify-center { justify-content: center; }
+.ds-justify-between { justify-content: space-between; }
+.ds-justify-end { justify-content: flex-end; }
+.ds-flex-1 { flex: 1; }
+.ds-flex-wrap { flex-wrap: wrap; }
+.ds-flex-col { flex-direction: column; }
+
+.ds-gap-1 { gap: var(--s-1); } .ds-gap-2 { gap: var(--s-2); }
+.ds-gap-3 { gap: var(--s-3); } .ds-gap-4 { gap: var(--s-4); }
+.ds-gap-5 { gap: var(--s-5); } .ds-gap-6 { gap: var(--s-6); }
+.ds-gap-8 { gap: var(--s-8); }
+
+.ds-mt-1 { margin-top: var(--s-1); }
+.ds-mt-2 { margin-top: var(--s-2); }
+.ds-mt-3 { margin-top: var(--s-3); }
+.ds-mt-4 { margin-top: var(--s-4); }
+.ds-mt-6 { margin-top: var(--s-6); }
+.ds-mt-8 { margin-top: var(--s-8); }
+.ds-mb-2 { margin-bottom: var(--s-2); }
+.ds-mb-3 { margin-bottom: var(--s-3); }
+.ds-mb-4 { margin-bottom: var(--s-4); }
+.ds-mb-6 { margin-bottom: var(--s-6); }
+.ds-mb-8 { margin-bottom: var(--s-8); }
+.ds-w-full { width: 100%; }
+.ds-mx-auto { margin-left: auto; margin-right: auto; }
+
+.ds-text-xs { font-size: var(--t-xs); }
+.ds-text-sm { font-size: var(--t-sm); }
+.ds-text-lg { font-size: var(--t-lg); }
+.ds-text-xl { font-size: var(--t-xl); }
+.ds-text-2xl { font-size: var(--t-2xl); }
+.ds-text-3xl { font-size: var(--t-3xl); }
+.ds-text-center { text-align: center; }
+.ds-text-right  { text-align: right; }
+.ds-text-muted  { color: var(--char-400); }
+.ds-text-body   { color: var(--char-700); }
+.ds-text-primary { color: var(--ink-700); }
+.ds-text-danger { color: var(--danger); }
+.ds-text-brass  { color: var(--brass-600); }
+.ds-font-mono  { font-family: var(--font-mono); }
+.ds-font-serif { font-family: var(--font-serif); }
+.ds-font-sans  { font-family: var(--font-sans); }
+.ds-font-medium { font-weight: 500; }
+.ds-font-semi   { font-weight: 600; }
+.ds-font-bold   { font-weight: 700; }
+.ds-tabular     { font-variant-numeric: tabular-nums lining-nums; }
+
+.ds-grid-cols-1 { grid-template-columns: 1fr; }
+.ds-grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.ds-grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.ds-grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+.ds-grid-cols-12 { grid-template-columns: repeat(12, 1fr); }
+
+@media (max-width: 900px) {
+    .ds-grid-cols-md-1 { grid-template-columns: 1fr; }
+    .ds-grid-cols-md-2 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+    .ds-grid-cols-sm-1 { grid-template-columns: 1fr; }
+    .ds-grid-cols-sm-2 { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ============================================================
+   20. Spinner
+   ============================================================ */
+.ds-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    display: inline-block;
+    animation: ds-spin 0.7s linear infinite;
+}
+@keyframes ds-spin { to { transform: rotate(360deg); } }
+
+/* ============================================================
+   21. Footer — küçük, klasik
+   ============================================================ */
+.ds-footer {
+    margin-top: var(--s-16);
+    padding: var(--s-6) 0;
+    background: var(--paper-soft);
+    border-top: 1px solid var(--line);
+}
+.ds-footer__inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 var(--s-5);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--s-4);
+    font-size: var(--t-xs);
+    color: var(--char-400);
+    flex-wrap: wrap;
+}
+.ds-footer__mark {
+    font-family: var(--font-serif);
+    font-style: italic;
+}
+
+/* ============================================================
+   22. Reduced motion
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ============================================================
+   23. Print
+   ============================================================ */
+@media print {
+    .ds-nav, .ds-footer, .ds-toast-stack, .ds-btn { display: none !important; }
+    body { background: white; color: black; }
+    .ds-card { box-shadow: none; border: 1px solid #333; break-inside: avoid; }
+}

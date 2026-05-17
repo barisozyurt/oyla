@@ -1,0 +1,87 @@
+#!/usr/bin/env php
+<?php
+/**
+ * Oyla — KVKK retention cron.
+ *
+ * PII_RETENTION_DAYS (varsayılan 365) gününü aşan kapanmış seçimlerin
+ * üye PII bilgilerini (tc_kimlik, phone, email, name) anonimleştirir.
+ * Oy verileri ve commitment hash'leri kalır — sadece kişisel veri silinir.
+ *
+ * Cron örneği (her gece 04:00):
+ *   0 4 * * * cd /var/www/oyla && bin/kvkk-anonymize >> logs/kvkk.log 2>&1
+ */
+
+declare(strict_types=1);
+
+require dirname(__DIR__) . '/vendor/autoload.php';
+
+$basePath = dirname(__DIR__);
+if (file_exists($basePath . '/.env')) {
+    $dotenv = Dotenv\Dotenv::createImmutable($basePath);
+    $dotenv->safeLoad();
+}
+
+use App\Core\Config;
+use App\Core\Database;
+use App\Core\Logger;
+use App\Models\Member;
+use App\Services\ActivityLogService;
+
+$retentionDays = (int) ($_ENV['PII_RETENTION_DAYS'] ?? 365);
+$dryRun = in_array('--dry-run', $argv, true);
+
+echo "[~] KVKK anonimleştirme başlatılıyor (retention: {$retentionDays} gün)\n";
+echo "    Mod: " . ($dryRun ? "DRY RUN (yazılmayacak)" : "GERÇEK") . "\n";
+
+try {
+    $db = Database::getInstance();
+    $stmt = $db->prepare(
+        "SELECT id, title, closed_at FROM elections
+         WHERE status = 'closed'
+           AND closed_at IS NOT NULL
+           AND closed_at < DATE_SUB(NOW(), INTERVAL ? DAY)
+         ORDER BY closed_at"
+    );
+    $stmt->execute([$retentionDays]);
+    $elections = $stmt->fetchAll();
+
+    if (!$elections) {
+        echo "[OK] Anonimleştirilecek seçim yok.\n";
+        exit(0);
+    }
+
+    echo "[~] " . count($elections) . " seçim retention'a tabi:\n";
+    foreach ($elections as $el) {
+        echo "    #{$el['id']} \"{$el['title']}\" (kapandı: {$el['closed_at']})\n";
+    }
+
+    if ($dryRun) {
+        echo "[OK] DRY RUN — hiçbir veri değiştirilmedi.\n";
+        exit(0);
+    }
+
+    $memberModel = new Member();
+    $totalAnon = 0;
+    foreach ($elections as $el) {
+        $count = $memberModel->anonymizeForElection((int) $el['id']);
+        $totalAnon += $count;
+        echo "    ✓ #{$el['id']}: {$count} üye anonimleştirildi\n";
+        ActivityLogService::log(
+            'pii_anonymized_cron',
+            "Cron: {$count} üye anonimleştirildi (retention {$retentionDays} gün)",
+            (int) $el['id']
+        );
+    }
+
+    echo "[OK] Toplam {$totalAnon} üye anonimleştirildi.\n";
+    Logger::info('KVKK anonimleştirme cron tamamlandı', [
+        'retention_days' => $retentionDays,
+        'elections'      => count($elections),
+        'members'        => $totalAnon,
+    ]);
+
+} catch (Throwable $e) {
+    fwrite(STDERR, "[-] Hata: " . $e->getMessage() . "\n");
+    Logger::error('KVKK anonimleştirme hatası', ['err' => $e->getMessage()]);
+    exit(1);
+}

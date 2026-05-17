@@ -152,23 +152,29 @@ class App
         $r->get('/oy/{token}', 'VoteController', 'show');
         $r->post('/oy/{token}', 'VoteController', 'store');
 
-        // Admin
-        $r->get('/admin', 'AdminController', 'index');
+        // Admin → Dashboard & log
+        $r->get('/admin',     'AdminController', 'index');
         $r->get('/admin/log', 'AdminController', 'activityLog');
-        $r->get('/admin/log/verify', 'AdminController', 'verifyLogIntegrity');
-        $r->get('/admin/users', 'AdminController', 'users');
-        $r->get('/admin/users/create', 'AdminController', 'createUser');
-        $r->post('/admin/users/store', 'AdminController', 'storeUser');
-        $r->get('/admin/users/edit/{id}', 'AdminController', 'editUser');
-        $r->post('/admin/users/update/{id}', 'AdminController', 'updateUser');
-        $r->post('/admin/users/delete/{id}', 'AdminController', 'deleteUser');
-        $r->get('/admin/system', 'AdminController', 'systemStatus');
-        $r->post('/admin/override', 'AdminController', 'overrideElection');
-        $r->get('/admin/hash-export', 'AdminController', 'hashExport');
-        $r->get('/admin/elections', 'AdminController', 'elections');
-        $r->post('/admin/elections/store', 'AdminController', 'storeElection');
-        $r->get('/admin/pdf', 'AdminController', 'downloadTutanak');
-        $r->post('/admin/data/anonymize', 'AdminController', 'anonymizeOldData');
+
+        // Admin → Kullanıcılar
+        $r->get ('/admin/users',                   'AdminUsersController', 'index');
+        $r->get ('/admin/users/create',            'AdminUsersController', 'create');
+        $r->post('/admin/users/store',             'AdminUsersController', 'store');
+        $r->get ('/admin/users/edit/{id}',         'AdminUsersController', 'edit');
+        $r->post('/admin/users/update/{id}',       'AdminUsersController', 'update');
+        $r->post('/admin/users/delete/{id}',       'AdminUsersController', 'destroy');
+
+        // Admin → Seçimler
+        $r->get ('/admin/elections',               'AdminElectionsController', 'index');
+        $r->post('/admin/elections/store',         'AdminElectionsController', 'store');
+        $r->post('/admin/override',                'AdminElectionsController', 'override');
+        $r->get ('/admin/pdf',                     'AdminElectionsController', 'downloadTutanak');
+
+        // Admin → Sistem & log integrity & hash export & anonymize
+        $r->get ('/admin/system',                  'AdminSystemController', 'status');
+        $r->get ('/admin/log/verify',              'AdminSystemController', 'verifyLogIntegrity');
+        $r->get ('/admin/hash-export',             'AdminSystemController', 'hashExport');
+        $r->post('/admin/data/anonymize',          'AdminSystemController', 'anonymizeOldData');
 
         // Test modu — sadece non-production'da kayıt edilir.
         if (!Config::isProduction()) {
@@ -177,6 +183,9 @@ class App
             $r->post('/admin/test/simulate', 'TestModeController', 'runTestElection');
             $r->post('/admin/test/cleanup', 'TestModeController', 'cleanup');
         }
+
+        // Health/uptime probe
+        $r->get('/health', 'HealthController', 'index');
 
         // Ana sayfa
         $r->get('/', 'ResultController', 'index');

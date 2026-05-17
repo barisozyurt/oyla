@@ -1,441 +1,308 @@
 <?php
 /**
  * Divan Paneli — Ana Sayfa
- *
- * Değişkenler:
- *   $election           array|null
- *   $divanMembers       array
- *   $ballots            array  (her biri: id, title, quota, candidate_count, candidates[])
- *   $stats              array  (total_members, signed_count, voted_count, participation_pct)
- *   $canStart           bool
- *   $hasBaskan          bool
- *   $hasBallots         bool
- *   $allBallotsHaveQuota bool
  */
+
+$statusMeta = [
+    'draft'  => ['label' => 'Taslak',   'class' => 'ds-badge--neutral'],
+    'test'   => ['label' => 'Test',     'class' => 'ds-badge--warn'],
+    'open'   => ['label' => 'Açık',     'class' => 'ds-badge--ink ds-badge--live'],
+    'closed' => ['label' => 'Kapandı',  'class' => 'ds-badge--brass'],
+];
+$badge = $election
+    ? ($statusMeta[$election['status']] ?? ['label' => $election['status'], 'class' => 'ds-badge--neutral'])
+    : null;
+
+$progressPct = $stats['total_members'] > 0
+    ? (int) round($stats['voted_count'] / $stats['total_members'] * 100)
+    : 0;
+$canEdit = !$election || !in_array($election['status'], ['open', 'closed'], true);
 ?>
 
-<!-- Başlık satırı + durum rozeti -->
-<div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
-    <div>
-        <h1 class="fw-bold mb-1" style="font-size: 2rem;">
-            <i class="bi bi-person-badge-fill text-primary me-2"></i>Divan Paneli
-        </h1>
-        <?php if ($election): ?>
-        <p class="text-muted mb-0 fs-5"><?= e($election['title']) ?></p>
-        <?php else: ?>
-        <p class="text-muted mb-0">Aktif seçim bulunamadı.</p>
+<header class="ds-page-header">
+    <div class="ds-page-header__row">
+        <div>
+            <p class="ds-page-header__eyebrow">Divan</p>
+            <h1 class="ds-page-header__title">Divan Paneli</h1>
+            <?php if ($election): ?>
+            <p class="ds-page-header__lead"><?= e($election['title']) ?></p>
+            <?php else: ?>
+            <p class="ds-page-header__lead">Aktif seçim bulunamadı.</p>
+            <?php endif; ?>
+        </div>
+        <?php if ($badge): ?>
+        <span class="ds-badge <?= $badge['class'] ?>"><?= e($badge['label']) ?></span>
         <?php endif; ?>
     </div>
-
-    <?php if ($election): ?>
-    <?php
-        $statusMap = [
-            'draft'  => ['label' => 'Taslak',  'class' => 'bg-secondary'],
-            'test'   => ['label' => 'Test',     'class' => 'bg-warning text-dark'],
-            'open'   => ['label' => 'Açık',     'class' => 'bg-success'],
-            'closed' => ['label' => 'Kapalı',   'class' => 'bg-danger'],
-        ];
-        $statusInfo = $statusMap[$election['status']] ?? ['label' => $election['status'], 'class' => 'bg-secondary'];
-    ?>
-    <span class="badge <?= $statusInfo['class'] ?> fs-5 px-3 py-2 align-self-start">
-        <?= $statusInfo['label'] ?>
-    </span>
-    <?php endif; ?>
-</div>
+</header>
 
 <?php if (!$election): ?>
-<div class="alert alert-warning">
-    <i class="bi bi-exclamation-triangle-fill me-2"></i>
-    Henüz bir seçim oluşturulmamış. Lütfen önce <a href="/yonetim" class="alert-link">Yönetim Paneli</a>'nden seçim oluşturun.
+<div class="ds-alert ds-alert--warn">
+    <i class="bi bi-exclamation-triangle ds-alert__icon" aria-hidden="true"></i>
+    <div class="ds-alert__body">
+        <p class="ds-alert__text">Henüz seçim oluşturulmamış. <a href="/yonetim">Yönetim Paneli</a>'nden seçim oluşturun.</p>
+    </div>
 </div>
 <?php return; ?>
 <?php endif; ?>
 
-<!-- ===== İSTATİSTİK KARTLARI ===== -->
-<div class="row g-3 mb-4">
-    <!-- Toplam Üye -->
-    <div class="col-6 col-lg-3">
-        <div class="card border-0 shadow-sm h-100 text-center">
-            <div class="card-body py-4">
-                <div class="fs-1 fw-bold text-primary" id="total-members">
-                    <?= (int) $stats['total_members'] ?>
-                </div>
-                <div class="text-muted mt-1 fs-5">Toplam Üye</div>
-            </div>
+<section class="ds-grid ds-grid-cols-4 ds-grid-cols-md-2 ds-grid-cols-sm-2 ds-gap-4 ds-mb-8" aria-label="Sayısal özet">
+    <article class="ds-stat ds-stat--char">
+        <p class="ds-stat__label">Toplam Üye</p>
+        <p class="ds-stat__value" id="total-members"><?= (int) $stats['total_members'] ?></p>
+    </article>
+    <article class="ds-stat ds-stat--brass">
+        <p class="ds-stat__label">İmza Atan</p>
+        <p class="ds-stat__value" id="signed-count"><?= (int) $stats['signed_count'] ?></p>
+    </article>
+    <article class="ds-stat ds-stat--ink">
+        <p class="ds-stat__label">Oy Kullanan</p>
+        <p class="ds-stat__value" id="voted-count"><?= (int) $stats['voted_count'] ?></p>
+    </article>
+    <article class="ds-stat ds-stat--ink">
+        <p class="ds-stat__label">Katılım</p>
+        <p class="ds-stat__value" id="participation-pct"><?= $stats['participation_pct'] ?><span class="ds-text-2xl ds-text-muted ds-font-serif" style="font-weight:400">%</span></p>
+    </article>
+</section>
+
+<section class="ds-card ds-mb-8" aria-labelledby="progress-h">
+    <header class="ds-card__header">
+        <div>
+            <h2 id="progress-h" class="ds-card__title">Oylama İlerlemesi</h2>
+            <p class="ds-card__subtitle">Oy kullanan üye sayısı</p>
         </div>
+        <span class="ds-font-mono ds-tabular ds-text-sm ds-text-body">
+            <strong id="progress-numerator"><?= (int) $stats['voted_count'] ?></strong>
+            <span class="ds-text-muted"> / </span>
+            <strong id="progress-denominator"><?= (int) $stats['total_members'] ?></strong> üye
+        </span>
+    </header>
+    <div class="ds-progress ds-progress--lg" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="<?= $progressPct ?>">
+        <div class="ds-progress__bar" id="progress-bar" style="width: <?= $progressPct ?>%"></div>
     </div>
+</section>
 
-    <!-- İmza Atan -->
-    <div class="col-6 col-lg-3">
-        <div class="card border-0 shadow-sm h-100 text-center">
-            <div class="card-body py-4">
-                <div class="fs-1 fw-bold text-warning" id="signed-count">
-                    <?= (int) $stats['signed_count'] ?>
+<div class="ds-grid ds-grid-cols-12 ds-gap-6 ds-grid-cols-md-1">
+
+    <section class="ds-card" style="grid-column: span 5;" aria-labelledby="divan-h">
+        <header class="ds-card__header">
+            <div>
+                <h2 id="divan-h" class="ds-card__title">Divan Kurulu</h2>
+                <p class="ds-card__subtitle">Başkan, üyeler ve kâtip</p>
+            </div>
+        </header>
+
+        <?php if (empty($divanMembers)): ?>
+        <div class="ds-empty" style="padding: var(--s-8) var(--s-5)">
+            <svg class="ds-empty__mark" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="32" cy="22" r="10"/>
+                <path d="M12 56c0-11 9-18 20-18s20 7 20 18"/>
+            </svg>
+            <p class="ds-empty__title">Henüz divan üyesi yok</p>
+            <p class="ds-empty__text">Aşağıdan başkan, üye ve kâtip ekleyerek başlayın.</p>
+        </div>
+        <?php else: ?>
+        <ul style="list-style:none;padding:0;margin:0;border-top:1px solid var(--line);">
+            <?php foreach ($divanMembers as $dm):
+                $roleLabel = match($dm['role']) {
+                    'baskan' => 'Başkan',
+                    'katip'  => 'Kâtip',
+                    default  => 'Üye',
+                };
+                $roleBadge = match($dm['role']) {
+                    'baskan' => 'ds-badge--ink',
+                    'katip'  => 'ds-badge--brass',
+                    default  => 'ds-badge--neutral',
+                };
+            ?>
+            <li class="ds-flex ds-items-center ds-justify-between ds-gap-3" style="padding: var(--s-3) 0; border-bottom: 1px solid var(--line);">
+                <div class="ds-flex ds-items-center ds-gap-3">
+                    <span class="ds-avatar ds-avatar--ink"><?= e(mb_substr($dm['name'],0,1,'UTF-8')) ?></span>
+                    <div>
+                        <div class="ds-font-semi" style="color:var(--char-800)"><?= e($dm['name']) ?></div>
+                        <span class="ds-badge <?= $roleBadge ?>"><?= e($roleLabel) ?></span>
+                    </div>
                 </div>
-                <div class="text-muted mt-1 fs-5">İmza Atan</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Oy Kullanan -->
-    <div class="col-6 col-lg-3">
-        <div class="card border-0 shadow-sm h-100 text-center">
-            <div class="card-body py-4">
-                <div class="fs-1 fw-bold text-success" id="voted-count">
-                    <?= (int) $stats['voted_count'] ?>
-                </div>
-                <div class="text-muted mt-1 fs-5">Oy Kullanan</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Katılım Oranı -->
-    <div class="col-6 col-lg-3">
-        <div class="card border-0 shadow-sm h-100 text-center">
-            <div class="card-body py-4">
-                <div class="fs-1 fw-bold" id="participation-pct"
-                     style="color: var(--oyla-primary);">
-                    <?= $stats['participation_pct'] ?>%
-                </div>
-                <div class="text-muted mt-1 fs-5">Katılım Oranı</div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ===== İLERLEME ÇUBUĞU ===== -->
-<?php
-    $progressPct = $stats['total_members'] > 0
-        ? (int) round($stats['voted_count'] / $stats['total_members'] * 100)
-        : 0;
-?>
-<div class="card border-0 shadow-sm mb-4">
-    <div class="card-body py-3">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="fw-semibold fs-5">
-                <i class="bi bi-bar-chart-steps me-2 text-primary"></i>Oylama İlerlemesi
-            </span>
-            <span class="text-muted">
-                <?= (int) $stats['voted_count'] ?> / <?= (int) $stats['total_members'] ?> üye
-            </span>
-        </div>
-        <div class="progress" style="height: 28px; border-radius: 8px;">
-            <div
-                class="progress-bar progress-bar-striped progress-bar-animated bg-success fw-semibold fs-6"
-                role="progressbar"
-                id="progress-bar"
-                style="width: <?= $progressPct ?>%;"
-                aria-valuenow="<?= $progressPct ?>"
-                aria-valuemin="0"
-                aria-valuemax="100"
-            >
-                <?= $progressPct ?>%
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row g-4">
-
-    <!-- ===== SOL SÜTUN: DİVAN KURULU + AKSİYON BUTONLARI ===== -->
-    <div class="col-lg-5">
-
-        <!-- Divan Kurulu -->
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white border-bottom fw-bold fs-5 py-3">
-                <i class="bi bi-people-fill text-primary me-2"></i>Divan Kurulu
-            </div>
-            <div class="card-body p-0">
-                <?php if (empty($divanMembers)): ?>
-                <div class="text-muted text-center py-4">
-                    <i class="bi bi-person-x fs-2 d-block mb-2"></i>
-                    Henüz divan üyesi eklenmedi.
-                </div>
-                <?php else: ?>
-                <table class="table table-hover mb-0 align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Görev</th>
-                            <th>Ad Soyad</th>
-                            <th class="text-end">İşlem</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($divanMembers as $dm): ?>
-                        <?php
-                            $roleLabel = match($dm['role']) {
-                                'baskan' => 'Başkan',
-                                'katip'  => 'Kâtip',
-                                default  => 'Üye',
-                            };
-                            $roleBadge = match($dm['role']) {
-                                'baskan' => 'bg-primary',
-                                'katip'  => 'bg-info text-dark',
-                                default  => 'bg-secondary',
-                            };
-                        ?>
-                        <tr>
-                            <td>
-                                <span class="badge <?= $roleBadge ?>"><?= e($roleLabel) ?></span>
-                            </td>
-                            <td class="fw-semibold"><?= e($dm['name']) ?></td>
-                            <td class="text-end">
-                                <?php if (!$election || !in_array($election['status'], ['open', 'closed'], true)): ?>
-                                <form method="POST"
-                                      action="/divan/divan-remove/<?= (int) $dm['id'] ?>"
-                                      class="d-inline"
-                                      onsubmit="return confirm('Bu üyeyi divan kurulundan çıkarmak istediğinizden emin misiniz?');">
-                                    <?= csrf_field() ?>
-                                    <button type="submit" class="btn btn-outline-danger btn-sm">
-                                        <i class="bi bi-trash3"></i>
-                                    </button>
-                                </form>
-                                <?php else: ?>
-                                <span class="text-muted small">—</span>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-                <?php endif; ?>
-            </div>
-
-            <!-- Divan Üyesi Ekleme Formu -->
-            <?php if (!in_array($election['status'], ['open', 'closed'], true)): ?>
-            <div class="card-footer bg-light">
-                <form method="POST" action="/divan/divan-store" class="row g-2 align-items-end">
+                <?php if ($canEdit): ?>
+                <form method="POST" action="/divan/divan-remove/<?= (int) $dm['id'] ?>" onsubmit="return confirm('<?= e($dm['name']) ?>’ı divan kurulundan çıkarmak istediğinizden emin misiniz?');">
                     <?= csrf_field() ?>
-                    <div class="col-auto">
-                        <label class="form-label small mb-1">Görev</label>
-                        <select name="role" class="form-select form-select-sm" required>
-                            <option value="">Seç…</option>
-                            <option value="baskan">Başkan</option>
-                            <option value="uye">Üye</option>
-                            <option value="katip">Kâtip</option>
-                        </select>
-                    </div>
-                    <div class="col">
-                        <label class="form-label small mb-1">Ad Soyad</label>
-                        <input type="text" name="name" class="form-control form-control-sm"
-                               placeholder="Ad Soyad" required maxlength="100">
-                    </div>
-                    <div class="col-auto">
-                        <button type="submit" class="btn btn-primary btn-sm">
-                            <i class="bi bi-plus-lg me-1"></i>Ekle
-                        </button>
-                    </div>
+                    <button type="submit" class="ds-btn ds-btn--ghost ds-btn--sm" aria-label="Sil">
+                        <i class="bi bi-trash3" aria-hidden="true"></i>
+                    </button>
                 </form>
-            </div>
-            <?php endif; ?>
-        </div>
-
-        <!-- Aksiyon Butonları -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-bottom fw-bold fs-5 py-3">
-                <i class="bi bi-play-circle-fill text-success me-2"></i>Seçim Kontrolü
-            </div>
-            <div class="card-body d-grid gap-3 py-4">
-
-                <?php if ($election['status'] === 'draft' || $election['status'] === 'test'): ?>
-                    <!-- Ön koşul uyarıları -->
-                    <?php if (!$hasBaskan): ?>
-                    <div class="alert alert-warning py-2 mb-0 small">
-                        <i class="bi bi-exclamation-triangle me-1"></i>
-                        Divan başkanı atanmadı.
-                    </div>
-                    <?php endif; ?>
-                    <?php if (!$hasBallots): ?>
-                    <div class="alert alert-warning py-2 mb-0 small">
-                        <i class="bi bi-exclamation-triangle me-1"></i>
-                        Hiç seçim kurulu tanımlanmadı.
-                    </div>
-                    <?php endif; ?>
-                    <?php if ($hasBallots && !$allBallotsHaveQuota): ?>
-                    <div class="alert alert-warning py-2 mb-0 small">
-                        <i class="bi bi-exclamation-triangle me-1"></i>
-                        Bazı kurullarda yeterli aday yok.
-                    </div>
-                    <?php endif; ?>
-
-                    <!-- Seçimi Başlat -->
-                    <button
-                        type="button"
-                        class="btn btn-success btn-lg fw-bold py-3"
-                        <?= $canStart ? '' : 'disabled' ?>
-                        <?= $canStart ? 'data-bs-toggle="modal" data-bs-target="#startModal"' : '' ?>
-                    >
-                        <i class="bi bi-play-fill me-2"></i>Seçimi Başlat
-                    </button>
                 <?php endif; ?>
+            </li>
+            <?php endforeach; ?>
+        </ul>
+        <?php endif; ?>
 
-                <?php if ($election['status'] === 'open'): ?>
-                    <!-- Seçimi Kapat -->
-                    <button
-                        type="button"
-                        class="btn btn-danger btn-lg fw-bold py-3"
-                        data-bs-toggle="modal"
-                        data-bs-target="#stopModal"
-                    >
-                        <i class="bi bi-stop-fill me-2"></i>Seçimi Kapat
-                    </button>
-                <?php endif; ?>
-
-                <?php if ($election['status'] === 'closed'): ?>
-                    <!-- PDF İndir -->
-                    <a href="/admin/pdf" class="btn btn-outline-secondary btn-lg fw-semibold py-3">
-                        <i class="bi bi-file-earmark-pdf-fill me-2 text-danger"></i>PDF Tutanak İndir
-                    </a>
-                    <div class="alert alert-success py-2 mb-0 text-center small">
-                        <i class="bi bi-check-circle-fill me-1"></i>Seçim tamamlandı.
-                    </div>
-                <?php endif; ?>
-
-                <!-- Sonuçlar linki -->
-                <a href="/sonuc" class="btn btn-outline-primary btn-lg fw-semibold py-3" target="_blank">
-                    <i class="bi bi-bar-chart-fill me-2"></i>Sonuçları Görüntüle
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== SAĞ SÜTUN: KURUL ÖZETİ ===== -->
-    <div class="col-lg-7">
-        <div class="card border-0 shadow-sm h-100">
-            <div class="card-header bg-white border-bottom fw-bold fs-5 py-3">
-                <i class="bi bi-list-check text-primary me-2"></i>Kurul Özeti
-            </div>
-            <div class="card-body">
-                <?php if (empty($ballots)): ?>
-                <div class="text-muted text-center py-5">
-                    <i class="bi bi-journal-x fs-2 d-block mb-2"></i>
-                    Henüz seçim kurulu tanımlanmadı.
-                    <br>
-                    <a href="/yonetim/ballots" class="btn btn-sm btn-outline-primary mt-3">
-                        <i class="bi bi-plus-circle me-1"></i>Kurul Ekle
-                    </a>
+        <?php if ($canEdit): ?>
+        <form method="POST" action="/divan/divan-store" class="ds-mt-6" style="border-top:1px dashed var(--line);padding-top:var(--s-5);">
+            <?= csrf_field() ?>
+            <div class="ds-grid ds-grid-cols-2 ds-gap-3 ds-mb-3">
+                <div class="ds-field" style="margin-bottom:0">
+                    <label for="dv-role" class="ds-field__label ds-field__label--required">Görev</label>
+                    <select id="dv-role" name="role" class="ds-select" required>
+                        <option value="">Seçiniz…</option>
+                        <option value="baskan">Başkan</option>
+                        <option value="uye">Üye</option>
+                        <option value="katip">Kâtip</option>
+                    </select>
                 </div>
-                <?php else: ?>
-                <div class="row g-3">
-                    <?php foreach ($ballots as $ballot): ?>
-                    <?php
-                        $candidateCount  = (int) $ballot['candidate_count'];
-                        $quota           = (int) $ballot['quota'];
-                        $hasEnough       = $candidateCount >= $quota;
-                    ?>
-                    <div class="col-12 col-md-6">
-                        <div class="card border <?= $hasEnough ? 'border-success' : 'border-warning' ?> h-100">
-                            <div class="card-body py-3 px-3">
-                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <span class="fw-bold fs-5"><?= e($ballot['title']) ?></span>
-                                    <?php if ($hasEnough): ?>
-                                    <i class="bi bi-check-circle-fill text-success fs-5"></i>
-                                    <?php else: ?>
-                                    <i class="bi bi-exclamation-circle-fill text-warning fs-5"></i>
-                                    <?php endif; ?>
-                                </div>
-
-                                <?php if (!empty($ballot['description'])): ?>
-                                <p class="text-muted small mb-2"><?= e($ballot['description']) ?></p>
-                                <?php endif; ?>
-
-                                <div class="d-flex gap-3 small">
-                                    <span>
-                                        <i class="bi bi-trophy me-1 text-primary"></i>
-                                        Kota: <strong><?= $quota ?></strong>
-                                    </span>
-                                    <span>
-                                        <i class="bi bi-people me-1 text-secondary"></i>
-                                        Aday: <strong><?= $candidateCount ?></strong>
-                                    </span>
-                                    <?php if ($ballot['yedek_quota'] > 0): ?>
-                                    <span>
-                                        <i class="bi bi-person-plus me-1 text-info"></i>
-                                        Yedek: <strong><?= (int) $ballot['yedek_quota'] ?></strong>
-                                    </span>
-                                    <?php endif; ?>
-                                </div>
-
-                                <?php if (!$hasEnough): ?>
-                                <div class="mt-2 text-warning small fw-semibold">
-                                    <i class="bi bi-exclamation-triangle me-1"></i>
-                                    <?= $quota - $candidateCount ?> aday daha gerekli
-                                </div>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
-                    <?php endforeach; ?>
+                <div class="ds-field" style="margin-bottom:0">
+                    <label for="dv-name" class="ds-field__label ds-field__label--required">Ad Soyad</label>
+                    <input id="dv-name" type="text" name="name" class="ds-input" placeholder="Örn: Ali Yılmaz" required maxlength="100">
                 </div>
-                <?php endif; ?>
             </div>
+            <button type="submit" class="ds-btn ds-btn--primary ds-w-full">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>Divan Üyesi Ekle
+            </button>
+        </form>
+        <?php endif; ?>
+    </section>
+
+    <section class="ds-card" style="grid-column: span 7;" aria-labelledby="ballots-h">
+        <header class="ds-card__header">
+            <div>
+                <h2 id="ballots-h" class="ds-card__title">Kurul Özeti</h2>
+                <p class="ds-card__subtitle">Aday kotaları ve hazırlık durumu</p>
+            </div>
+        </header>
+
+        <?php if (empty($ballots)): ?>
+        <div class="ds-empty" style="padding: var(--s-8) var(--s-5)">
+            <svg class="ds-empty__mark" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="10" y="14" width="44" height="40" rx="3"/>
+                <line x1="18" y1="26" x2="46" y2="26"/>
+                <line x1="18" y1="36" x2="46" y2="36"/>
+                <line x1="18" y1="46" x2="36" y2="46"/>
+            </svg>
+            <p class="ds-empty__title">Henüz seçim kurulu tanımlı değil</p>
+            <p class="ds-empty__text">Yönetim panelinden Yönetim Kurulu, Denetleme Kurulu vb. ekleyin.</p>
+            <a href="/yonetim/ballots" class="ds-btn ds-btn--secondary">
+                <i class="bi bi-plus-lg" aria-hidden="true"></i>Kurul Ekle
+            </a>
         </div>
-    </div>
+        <?php else: ?>
+        <div class="ds-grid ds-grid-cols-2 ds-grid-cols-sm-1 ds-gap-3">
+            <?php foreach ($ballots as $ballot):
+                $candidateCount = (int) $ballot['candidate_count'];
+                $quota          = (int) $ballot['quota'];
+                $hasEnough      = $candidateCount >= $quota;
+            ?>
+            <article class="ds-card" style="padding:var(--s-5); border-color: <?= $hasEnough ? 'var(--ink-200)' : 'var(--line)' ?>;">
+                <header class="ds-flex ds-items-start ds-justify-between ds-gap-3 ds-mb-3">
+                    <div>
+                        <h3 class="ds-font-serif ds-font-bold" style="font-size:var(--t-lg);margin:0;color:var(--char-800);"><?= e($ballot['title']) ?></h3>
+                        <?php if (!empty($ballot['description'])): ?>
+                        <p class="ds-text-xs ds-text-muted" style="margin:var(--s-1) 0 0;"><?= e($ballot['description']) ?></p>
+                        <?php endif; ?>
+                    </div>
+                    <?php if ($hasEnough): ?>
+                    <i class="bi bi-check-circle" style="color:var(--ink-600);font-size:var(--t-lg);" title="Hazır" aria-hidden="true"></i>
+                    <?php else: ?>
+                    <i class="bi bi-exclamation-circle" style="color:var(--warn);font-size:var(--t-lg);" title="Eksik" aria-hidden="true"></i>
+                    <?php endif; ?>
+                </header>
 
-</div><!-- /row -->
+                <dl class="ds-flex ds-gap-4 ds-text-xs ds-tabular" style="margin:0;color:var(--char-500);">
+                    <div>
+                        <dt style="text-transform:uppercase;letter-spacing:0.1em;color:var(--char-400);font-size:10px;">Kota</dt>
+                        <dd class="ds-font-mono ds-font-semi ds-tabular" style="margin:0;color:var(--char-800);font-size:var(--t-md);"><?= $quota ?></dd>
+                    </div>
+                    <div>
+                        <dt style="text-transform:uppercase;letter-spacing:0.1em;color:var(--char-400);font-size:10px;">Aday</dt>
+                        <dd class="ds-font-mono ds-font-semi ds-tabular" style="margin:0;color:var(--char-800);font-size:var(--t-md);"><?= $candidateCount ?></dd>
+                    </div>
+                    <?php if ($ballot['yedek_quota'] > 0): ?>
+                    <div>
+                        <dt style="text-transform:uppercase;letter-spacing:0.1em;color:var(--char-400);font-size:10px;">Yedek</dt>
+                        <dd class="ds-font-mono ds-font-semi ds-tabular" style="margin:0;color:var(--char-800);font-size:var(--t-md);"><?= (int) $ballot['yedek_quota'] ?></dd>
+                    </div>
+                    <?php endif; ?>
+                </dl>
 
-<!-- ===== MODAL: SEÇİMİ BAŞLAT ===== -->
-<div class="modal fade" id="startModal" tabindex="-1" aria-labelledby="startModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold" id="startModalLabel">
-                    <i class="bi bi-play-fill text-success me-2"></i>Seçimi Başlat
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
-            </div>
-            <div class="modal-body fs-5 py-4 text-center">
-                <i class="bi bi-question-circle-fill text-warning d-block mb-3" style="font-size: 3rem;"></i>
-                Seçimi başlatmak istediğinizden <strong>emin misiniz?</strong>
-                <p class="text-muted small mt-2">
-                    Başladıktan sonra üyeler oy kullanmaya başlayacaktır.
+                <?php if (!$hasEnough): ?>
+                <p class="ds-text-xs ds-mt-3" style="margin:var(--s-3) 0 0;color:var(--warn);">
+                    <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+                    <?= $quota - $candidateCount ?> aday daha gerekli
                 </p>
-            </div>
-            <div class="modal-footer border-0 justify-content-center gap-2">
-                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
-                    İptal
-                </button>
-                <form method="POST" action="/divan/start">
-                    <?= csrf_field() ?>
-                    <button type="submit" class="btn btn-success px-4 fw-bold">
-                        <i class="bi bi-play-fill me-1"></i>Evet, Başlat
-                    </button>
-                </form>
-            </div>
+                <?php endif; ?>
+            </article>
+            <?php endforeach; ?>
         </div>
-    </div>
+        <?php endif; ?>
+    </section>
 </div>
 
-<!-- ===== MODAL: SEÇİMİ KAPAT ===== -->
-<div class="modal fade" id="stopModal" tabindex="-1" aria-labelledby="stopModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0">
-                <h5 class="modal-title fw-bold" id="stopModalLabel">
-                    <i class="bi bi-stop-fill text-danger me-2"></i>Seçimi Kapat
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
-            </div>
-            <div class="modal-body fs-5 py-4 text-center">
-                <i class="bi bi-exclamation-triangle-fill text-danger d-block mb-3" style="font-size: 3rem;"></i>
-                Seçimi kapatmak istediğinizden <strong>emin misiniz?</strong>
-                <p class="text-muted small mt-2">
-                    Seçim kapatıldıktan sonra yeniden açılamaz ve oy kullanılamaz.
-                </p>
-            </div>
-            <div class="modal-footer border-0 justify-content-center gap-2">
-                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
-                    İptal
+<section class="ds-card ds-mt-8" aria-labelledby="control-h">
+    <header class="ds-card__header">
+        <div>
+            <h2 id="control-h" class="ds-card__title">Seçim Kontrolü</h2>
+            <p class="ds-card__subtitle">Açma, kapatma ve tutanak işlemleri</p>
+        </div>
+    </header>
+
+    <?php if ($election['status'] === 'draft' || $election['status'] === 'test'): ?>
+        <?php if (!$hasBaskan): ?>
+        <div class="ds-alert ds-alert--warn">
+            <i class="bi bi-exclamation-triangle ds-alert__icon" aria-hidden="true"></i>
+            <div class="ds-alert__body"><p class="ds-alert__text">Divan başkanı atanmadı.</p></div>
+        </div>
+        <?php endif; ?>
+        <?php if (!$hasBallots): ?>
+        <div class="ds-alert ds-alert--warn">
+            <i class="bi bi-exclamation-triangle ds-alert__icon" aria-hidden="true"></i>
+            <div class="ds-alert__body"><p class="ds-alert__text">Hiç seçim kurulu tanımlanmamış.</p></div>
+        </div>
+        <?php endif; ?>
+        <?php if ($hasBallots && !$allBallotsHaveQuota): ?>
+        <div class="ds-alert ds-alert--warn">
+            <i class="bi bi-exclamation-triangle ds-alert__icon" aria-hidden="true"></i>
+            <div class="ds-alert__body"><p class="ds-alert__text">Bazı kurullarda yeterli aday yok.</p></div>
+        </div>
+        <?php endif; ?>
+
+        <div class="ds-flex ds-gap-3 ds-mt-4 ds-flex-wrap">
+            <form method="POST" action="/divan/start" onsubmit="return confirm('Seçimi başlatmak istediğinizden emin misiniz?');">
+                <?= csrf_field() ?>
+                <button type="submit" class="ds-btn ds-btn--primary ds-btn--lg" <?= $canStart ? '' : 'disabled' ?>>
+                    <i class="bi bi-play-fill" aria-hidden="true"></i>Seçimi Başlat
                 </button>
-                <form method="POST" action="/divan/stop">
-                    <?= csrf_field() ?>
-                    <button type="submit" class="btn btn-danger px-4 fw-bold">
-                        <i class="bi bi-stop-fill me-1"></i>Evet, Kapat
-                    </button>
-                </form>
+            </form>
+            <a href="/sonuc" class="ds-btn ds-btn--secondary ds-btn--lg" target="_blank" rel="noopener">
+                <i class="bi bi-bar-chart" aria-hidden="true"></i>Sonuçları Görüntüle
+            </a>
+        </div>
+    <?php elseif ($election['status'] === 'open'): ?>
+        <div class="ds-flex ds-gap-3 ds-flex-wrap">
+            <form method="POST" action="/divan/stop" onsubmit="return confirm('Seçimi kapatmak istediğinizden emin misiniz? Bu işlem geri alınamaz.');">
+                <?= csrf_field() ?>
+                <button type="submit" class="ds-btn ds-btn--danger ds-btn--lg">
+                    <i class="bi bi-stop-fill" aria-hidden="true"></i>Seçimi Kapat
+                </button>
+            </form>
+            <a href="/sonuc" class="ds-btn ds-btn--secondary ds-btn--lg" target="_blank" rel="noopener">
+                <i class="bi bi-bar-chart" aria-hidden="true"></i>Sonuçları Görüntüle
+            </a>
+        </div>
+    <?php elseif ($election['status'] === 'closed'): ?>
+        <div class="ds-alert ds-alert--success ds-mb-4">
+            <i class="bi bi-check-circle ds-alert__icon" aria-hidden="true"></i>
+            <div class="ds-alert__body">
+                <p class="ds-alert__title">Seçim tamamlandı</p>
+                <p class="ds-alert__text">Resmi tutanağı PDF olarak indirebilirsiniz.</p>
             </div>
         </div>
-    </div>
-</div>
+        <div class="ds-flex ds-gap-3 ds-flex-wrap">
+            <a href="/admin/pdf" class="ds-btn ds-btn--brass ds-btn--lg">
+                <i class="bi bi-file-earmark-text" aria-hidden="true"></i>PDF Tutanak İndir
+            </a>
+            <a href="/sonuc" class="ds-btn ds-btn--secondary ds-btn--lg" target="_blank" rel="noopener">
+                <i class="bi bi-bar-chart" aria-hidden="true"></i>Resmi Sonuçlar
+            </a>
+        </div>
+    <?php endif; ?>
+</section>
 
-<script src="/assets/js/divan.js"></script>
+<script src="<?= asset('js/divan.js') ?>"></script>

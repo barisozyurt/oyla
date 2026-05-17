@@ -1,0 +1,78 @@
+#!/usr/bin/env php
+<?php
+/**
+ * Oyla — kuyruk worker'ı (file-based queue).
+ *
+ * Yapılandırılmış kuyruktaki pending job'ları işler.
+ * - send_sms: telefon + mesaj payload'ı ile SMS yollar (SmsService)
+ *
+ * Production'da supervisord/systemd ile sürekli çalıştırılmalı.
+ * Manuel test için: bin/queue-worker --once (tek geçiş)
+ */
+
+declare(strict_types=1);
+
+require dirname(__DIR__) . '/vendor/autoload.php';
+
+$basePath = dirname(__DIR__);
+if (file_exists($basePath . '/.env')) {
+    $dotenv = Dotenv\Dotenv::createImmutable($basePath);
+    $dotenv->safeLoad();
+}
+
+use App\Core\Logger;
+use App\Core\Queue;
+use App\Services\SmsService;
+
+$once = in_array('--once', $argv, true);
+$sleep = (int) ($_ENV['QUEUE_WORKER_SLEEP'] ?? 2);
+
+echo "[~] Queue worker başladı (sleep: {$sleep}s)\n";
+
+$running = true;
+pcntl_async_signals(true);
+foreach ([SIGINT, SIGTERM] as $sig) {
+    pcntl_signal($sig, function () use (&$running) {
+        echo "\n[~] Sinyal alındı, sonraki turda çıkılacak.\n";
+        $running = false;
+    });
+}
+
+while ($running) {
+    $job = Queue::reserve();
+    if (!$job) {
+        if ($once) {
+            echo "[OK] Pending job yok, --once moduyla çıkılıyor.\n";
+            exit(0);
+        }
+        sleep($sleep);
+        continue;
+    }
+
+    echo "[~] Job: {$job['id']} ({$job['type']})\n";
+    try {
+        switch ($job['type']) {
+            case 'send_sms':
+                $sms = new SmsService();
+                $ok = $sms->send(
+                    (string) ($job['payload']['phone'] ?? ''),
+                    (string) ($job['payload']['message'] ?? '')
+                );
+                if (!$ok) {
+                    throw new RuntimeException('SmsService::send false döndü');
+                }
+                break;
+            default:
+                throw new RuntimeException("Bilinmeyen job tipi: {$job['type']}");
+        }
+        Queue::complete($job);
+        echo "    ✓ tamamlandı\n";
+        Logger::info('Queue job complete', ['id' => $job['id'], 'type' => $job['type']]);
+    } catch (Throwable $e) {
+        Queue::fail($job, $e->getMessage());
+        echo "    ✗ hata: " . $e->getMessage() . "\n";
+        Logger::error('Queue job failed', ['id' => $job['id'], 'type' => $job['type'], 'err' => $e->getMessage()]);
+    }
+}
+
+echo "[OK] Worker durduruldu.\n";

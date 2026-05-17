@@ -1,281 +1,85 @@
 <?php
 /**
- * Oy Doğrulama Ekranı — /oy/verify
- *
- * Değişkenler:
- *   $csrf      string   — CSRF gizli input HTML
- *   $searched  bool     — Form gönderildi mi?
- *   $code      string   — Aranan kod (searched=true ise)
- *   $found     bool     — Kod bulundu mu? (searched=true ise)
+ * Oy Doğrulama Ekranı — /oy/verify (eski endpoint)
+ * Yeni alternatif endpoint: /oy/dogrula (ReceiptController)
  */
-
 $bodyClass = 'voting-mode';
 ?>
-<style>
-    .verify-wrapper {
-        max-width: 420px;
-        margin: 0 auto;
-        padding: 48px 20px 40px;
-        color: #1e293b;
-    }
+<main style="max-width:460px;margin:0 auto;padding:var(--s-12) var(--s-5) var(--s-16);">
 
-    .verify-header {
-        text-align: center;
-        margin-bottom: 32px;
-    }
-
-    .verify-icon {
-        width: 72px;
-        height: 72px;
-        background: #eff6ff;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 18px;
-    }
-
-    .verify-icon svg {
-        width: 38px;
-        height: 38px;
-    }
-
-    .verify-heading {
-        font-size: 1.4rem;
-        font-weight: 800;
-        margin-bottom: 6px;
-    }
-
-    .verify-subtext {
-        font-size: .88rem;
-        color: #64748b;
-    }
-
-    /* Form */
-    .verify-card {
-        background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 24px 20px;
-        margin-bottom: 20px;
-    }
-
-    .verify-label {
-        display: block;
-        font-size: .85rem;
-        font-weight: 600;
-        color: #374151;
-        margin-bottom: 8px;
-    }
-
-    .verify-input {
-        width: 100%;
-        padding: 14px 16px;
-        border: 2px solid #e2e8f0;
-        border-radius: 8px;
-        font-size: 1.15rem;
-        font-weight: 700;
-        letter-spacing: .12em;
-        text-transform: uppercase;
-        color: #1e293b;
-        outline: none;
-        transition: border-color .15s;
-        box-sizing: border-box;
-    }
-    .verify-input:focus { border-color: #1D9E75; }
-    .verify-input::placeholder { letter-spacing: normal; font-weight: 400; color: #94a3b8; }
-
-    .btn-verify {
-        width: 100%;
-        background: #1D9E75;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        padding: 14px;
-        font-size: 1rem;
-        font-weight: 700;
-        cursor: pointer;
-        margin-top: 16px;
-        transition: opacity .15s;
-    }
-    .btn-verify:hover { opacity: .9; }
-
-    /* Sonuç alertleri */
-    .result-alert {
-        border-radius: 10px;
-        padding: 18px 20px;
-        display: flex;
-        gap: 14px;
-        align-items: flex-start;
-        font-size: .95rem;
-        line-height: 1.5;
-    }
-    .result-alert.success {
-        background: #f0fdf4;
-        border: 1px solid #86efac;
-        color: #15803d;
-    }
-    .result-alert.error {
-        background: #fef2f2;
-        border: 1px solid #fca5a5;
-        color: #dc2626;
-    }
-    .result-alert-icon {
-        flex-shrink: 0;
-        margin-top: 1px;
-    }
-    .result-code-display {
-        font-size: 1.15rem;
-        font-weight: 700;
-        letter-spacing: .12em;
-        margin-top: 4px;
-    }
-
-    /* Bilgi notu */
-    .info-box {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 14px 16px;
-        font-size: .82rem;
-        color: #475569;
-        line-height: 1.6;
-    }
-    .info-box strong { color: #1e293b; }
-
-    .vote-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        color: #64748b;
-        font-size: .85rem;
-        text-decoration: none;
-        margin-top: 20px;
-    }
-    .vote-link:hover { color: #1D9E75; text-decoration: underline; }
-</style>
-
-<div class="verify-wrapper">
-
-    <!-- Başlık -->
-    <div class="verify-header">
-        <div class="verify-icon">
-            <svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M19 3L35 31H3L19 3Z" fill="#e8f5ef" stroke="#1D9E75"
-                      stroke-width="1.5" stroke-linejoin="round"/>
-                <path d="M15 13l4 4 8-8" stroke="#1D9E75" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="30" cy="28" r="7" fill="#16a34a"/>
-                <path d="M27.5 28l2 2 3-3" stroke="white" stroke-width="1.5"
-                      stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+    <header class="ds-text-center ds-mb-8">
+        <div style="width:64px;height:64px;background:var(--brass-100);border-radius:50%;display:grid;place-items:center;margin:0 auto var(--s-4);">
+            <i class="bi bi-shield-check" style="font-size:32px;color:var(--brass-700);" aria-hidden="true"></i>
         </div>
-        <h1 class="verify-heading">Oy Doğrulama</h1>
-        <p class="verify-subtext">
-            Makbuz kodunuzu girerek oyunuzun sayıldığını doğrulayın
-        </p>
-    </div>
+        <p style="font-family:var(--font-mono);font-size:var(--t-xs);text-transform:uppercase;letter-spacing:0.2em;color:var(--char-400);margin:0 0 var(--s-2);">Doğrulama</p>
+        <h1 class="ds-font-serif" style="font-size:var(--t-2xl);font-weight:700;color:var(--char-800);margin:0 0 var(--s-2);">Makbuz Kodu Doğrulama</h1>
+        <p class="ds-text-sm ds-text-muted" style="margin:0;">SMS ile gelen kodu girerek oyunuzun kayıt altına alındığını doğrulayın.</p>
+    </header>
 
-    <!-- Arama sonucu -->
     <?php if ($searched ?? false): ?>
-    <?php if ($found ?? false): ?>
-    <div class="result-alert success mb-4">
-        <div class="result-alert-icon">
-            <svg width="22" height="22" fill="none" viewBox="0 0 24 24"
-                 xmlns="http://www.w3.org/2000/svg">
-                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                      stroke="currentColor" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-        </div>
-        <div>
-            <strong>Oyunuz sayılmıştır ✓</strong>
-            <div class="result-code-display"><?= e($code ?? '') ?></div>
-            <div style="font-size:.82rem; margin-top:4px; opacity:.8;">
-                Bu makbuz kodu sistemimizde kayıtlıdır.
+        <?php if ($found ?? false): ?>
+        <div class="ds-alert ds-alert--success ds-mb-5" role="status">
+            <i class="bi bi-check-circle ds-alert__icon" aria-hidden="true"></i>
+            <div class="ds-alert__body">
+                <p class="ds-alert__title">Makbuz doğrulandı</p>
+                <p class="ds-alert__text">Bu kod sistemimizde kayıtlıdır.</p>
+                <p class="ds-font-mono ds-tabular" style="font-size:var(--t-lg);font-weight:600;color:var(--ink-700);letter-spacing:0.1em;margin:var(--s-2) 0 0;"><?= e($code ?? '') ?></p>
             </div>
         </div>
-    </div>
-    <?php else: ?>
-    <div class="result-alert error mb-4">
-        <div class="result-alert-icon">
-            <svg width="22" height="22" fill="none" viewBox="0 0 24 24"
-                 xmlns="http://www.w3.org/2000/svg">
-                <path d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9
-                         0 11-18 0 9 9 0 0118 0z"
-                      stroke="currentColor" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-        </div>
-        <div>
-            <strong>Bu kod bulunamadı</strong>
-            <?php if ($code ?? ''): ?>
-            <div class="result-code-display"><?= e($code) ?></div>
-            <?php endif; ?>
-            <div style="font-size:.82rem; margin-top:4px; opacity:.8;">
-                Lütfen kodu kontrol edip tekrar deneyin.
+        <?php else: ?>
+        <div class="ds-alert ds-alert--danger ds-mb-5" role="alert">
+            <i class="bi bi-x-circle ds-alert__icon" aria-hidden="true"></i>
+            <div class="ds-alert__body">
+                <p class="ds-alert__title">Bu kodla eşleşen makbuz bulunamadı</p>
+                <p class="ds-alert__text">Lütfen kodu kontrol edip tekrar deneyin.</p>
+                <?php if ($code ?? ''): ?>
+                <p class="ds-font-mono ds-tabular" style="font-size:var(--t-md);font-weight:600;color:var(--danger);letter-spacing:0.1em;margin:var(--s-2) 0 0;"><?= e($code) ?></p>
+                <?php endif; ?>
             </div>
         </div>
-    </div>
-    <?php endif; ?>
+        <?php endif; ?>
     <?php endif; ?>
 
-    <!-- Form -->
-    <div class="verify-card">
-        <form method="POST" action="/oy/verify" autocomplete="off">
+    <div class="ds-card">
+        <form method="POST" action="/oy/verify" autocomplete="off" novalidate>
             <?= $csrf ?>
-            <label class="verify-label" for="verify-code">Makbuz Kodu</label>
-            <input
-                type="text"
-                id="verify-code"
-                name="code"
-                class="verify-input"
-                placeholder="Örn: A1B2C3D4"
-                value="<?= e($code ?? '') ?>"
-                maxlength="10"
-                inputmode="text"
-                autocorrect="off"
-                autocapitalize="characters"
-                spellcheck="false"
-                required
-            >
-            <button type="submit" class="btn-verify">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24"
-                     style="vertical-align:middle; margin-right:6px"
-                     xmlns="http://www.w3.org/2000/svg">
-                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                          stroke="currentColor" stroke-width="2"
-                          stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                Doğrula
+            <div class="ds-field">
+                <label for="verify-code" class="ds-field__label ds-field__label--required">Makbuz kodu</label>
+                <input type="text"
+                       id="verify-code"
+                       name="code"
+                       class="ds-input ds-input--lg ds-input--mono"
+                       placeholder="A1B2C3D4"
+                       value="<?= e($code ?? '') ?>"
+                       maxlength="10"
+                       inputmode="text"
+                       autocorrect="off"
+                       autocapitalize="characters"
+                       spellcheck="false"
+                       required>
+                <p class="ds-field__hint">SMS ile gönderilen 8 karakterlik koddur (harf+rakam).</p>
+            </div>
+            <button type="submit" class="ds-btn ds-btn--primary ds-btn--lg ds-w-full">
+                <i class="bi bi-search" aria-hidden="true"></i>Doğrula
             </button>
         </form>
     </div>
 
-    <!-- Bilgi notu -->
-    <div class="info-box">
-        <strong>Makbuz kodu nedir?</strong><br>
-        Oyunuzu kullandıktan sonra SMS ile gönderilen 8 karakterlik koddur.
-        Bu kod, oyunuzun sisteme kaydedildiğini kanıtlar. Kimliğinizi veya
-        hangi adaya oy verdiğinizi açığa çıkarmaz.
+    <div class="ds-card ds-mt-5" style="background:var(--paper-soft);border-style:dashed;">
+        <p class="ds-text-sm ds-text-body" style="margin:0;">
+            <strong>Makbuz kodu nedir?</strong> Oy kullandıktan sonra SMS ile gelen 8 karakterlik koddur.
+            Sisteme oyunuzun ulaştığını kanıtlar; kimliğinizi veya hangi adaya oy verdiğinizi açığa çıkarmaz.
+        </p>
     </div>
 
-    <div style="text-align:center">
-        <a href="/" class="vote-link">
-            <svg width="14" height="14" fill="none" viewBox="0 0 24 24"
-                 xmlns="http://www.w3.org/2000/svg">
-                <path d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                      stroke="currentColor" stroke-width="2"
-                      stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Ana Sayfaya Dön
+    <p class="ds-text-center ds-mt-6">
+        <a href="/" class="ds-text-muted ds-text-sm">
+            <i class="bi bi-arrow-left" aria-hidden="true"></i> Ana sayfaya dön
         </a>
-    </div>
-
-</div>
+    </p>
+</main>
 
 <script>
-    // Girilen kodu otomatik büyük harfe çevir
     document.getElementById('verify-code').addEventListener('input', function () {
         const pos = this.selectionStart;
         this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');

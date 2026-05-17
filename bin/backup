@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+# Oyla — DB + uploads + audit log yedekleme.
+#
+# Çıktı: backups/{timestamp}/{db.sql.gz, uploads.tar.gz, manifest.json, sha256sums}
+# Kullanım:
+#   bin/backup                # tam yedek
+#   bin/backup --db-only      # sadece veritabanı
+#   bin/backup --rotate 14    # 14 günden eski yedekleri sil
+#
+# Production'da cron örneği (her gece 03:00):
+#   0 3 * * * cd /var/www/oyla && bin/backup --rotate 14 >> logs/backup.log 2>&1
+
+set -euo pipefail
+
+BASE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+BACKUP_ROOT="${BASE_DIR}/backups"
+DB_ONLY=0
+ROTATE_DAYS=0
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --db-only)  DB_ONLY=1; shift ;;
+        --rotate)   ROTATE_DAYS="$2"; shift 2 ;;
+        --help|-h)
+            grep '^# ' "$0" | sed 's/^# \{0,1\}//'
+            exit 0
+            ;;
+        *) echo "Bilinmeyen argüman: $1"; exit 1 ;;
+    esac
+done
+
+# .env yükle
+if [[ -f "${BASE_DIR}/.env" ]]; then
+    set -a
+    # shellcheck disable=SC1091
+    source <(grep -v '^#' "${BASE_DIR}/.env" | grep -E '^[A-Z_]+=')
+    set +a
+fi
+
+DB_HOST="${DB_HOST:-127.0.0.1}"
+DB_PORT="${DB_PORT:-3306}"
+DB_NAME="${DB_NAME:-oyla}"
+DB_USER="${DB_USER:-root}"
+DB_PASS="${DB_PASS:-}"
+
+TS=$(date +%Y%m%d_%H%M%S)
+OUT_DIR="${BACKUP_ROOT}/${TS}"
+mkdir -p "${OUT_DIR}"
+
+echo "[~] Yedek dizini: ${OUT_DIR}"
+
+# 1) DB dump
+echo "[~] Veritabanı dump'ı alınıyor: ${DB_NAME}"
+mysqldump \
+    --host="${DB_HOST}" \
+    --port="${DB_PORT}" \
+    --user="${DB_USER}" \
+    --password="${DB_PASS}" \
+    --single-transaction \
+    --routines \
+    --triggers \
+    --default-character-set=utf8mb4 \
+    "${DB_NAME}" | gzip -9 > "${OUT_DIR}/db.sql.gz"
+DB_SIZE=$(du -h "${OUT_DIR}/db.sql.gz" | cut -f1)
+echo "    ✓ db.sql.gz (${DB_SIZE})"
+
+# 2) Uploads + logs (opsiyonel)
+if [[ "${DB_ONLY}" -eq 0 ]]; then
+    if [[ -d "${BASE_DIR}/public/uploads" ]]; then
+        echo "[~] public/uploads/ arşivleniyor..."
+        tar -czf "${OUT_DIR}/uploads.tar.gz" -C "${BASE_DIR}/public" uploads 2>/dev/null || true
+        UP_SIZE=$(du -h "${OUT_DIR}/uploads.tar.gz" 2>/dev/null | cut -f1 || echo "0")
+        echo "    ✓ uploads.tar.gz (${UP_SIZE})"
+    fi
+
+    if [[ -d "${BASE_DIR}/logs" ]]; then
+        echo "[~] logs/ arşivleniyor..."
+        tar -czf "${OUT_DIR}/logs.tar.gz" -C "${BASE_DIR}" logs 2>/dev/null || true
+        LG_SIZE=$(du -h "${OUT_DIR}/logs.tar.gz" 2>/dev/null | cut -f1 || echo "0")
+        echo "    ✓ logs.tar.gz (${LG_SIZE})"
+    fi
+fi
+
+# 3) Manifest & checksum
+cat > "${OUT_DIR}/manifest.json" <<EOF
+{
+    "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+    "host": "$(hostname)",
+    "db_name": "${DB_NAME}",
+    "files": [
+$(find "${OUT_DIR}" -maxdepth 1 -type f ! -name manifest.json ! -name sha256sums | sed 's|.*/|        "|; s|$|",|' | sed '$ s/,$//')
+    ]
+}
+EOF
+
+(cd "${OUT_DIR}" && find . -maxdepth 1 -type f ! -name sha256sums -exec shasum -a 256 {} \; > sha256sums)
+echo "[~] sha256sums oluşturuldu."
+
+# 4) Eski yedekleri temizle
+if [[ "${ROTATE_DAYS}" -gt 0 ]]; then
+    echo "[~] ${ROTATE_DAYS} günden eski yedekler siliniyor..."
+    DELETED=$(find "${BACKUP_ROOT}" -maxdepth 1 -type d -mtime "+${ROTATE_DAYS}" -name '2*' | wc -l | tr -d ' ')
+    find "${BACKUP_ROOT}" -maxdepth 1 -type d -mtime "+${ROTATE_DAYS}" -name '2*' -exec rm -rf {} +
+    echo "    ✓ ${DELETED} eski yedek silindi"
+fi
+
+echo "[OK] Yedekleme tamamlandı: ${OUT_DIR}"

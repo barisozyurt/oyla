@@ -1,63 +1,246 @@
 <?php
 /**
  * Perde / Salon Ekranı — Fullscreen (fullscreen layout)
- *
- * Değişkenler:
- *   $election      array   (id, title, status)
- *   $results       array   [ { ballot, candidates[], total_votes } ]
- *   $totalMembers  int
- *   $votedMembers  int
+ * Karanlık tema (data-theme="dark" body'de zaten)
  */
 
 $isClosed = ($election['status'] === 'closed');
 $isOpen   = ($election['status'] === 'open');
-$participationPct = $totalMembers > 0
-    ? round($votedMembers / $totalMembers * 100, 1)
-    : 0.0;
+$participationPct = $totalMembers > 0 ? round($votedMembers / $totalMembers * 100, 1) : 0.0;
 ?>
-<div class="d-flex flex-column min-vh-100" style="padding: 0; overflow-x:hidden;">
+<style>
+    /* Perde modu — dark, klasik posta sergileme */
+    .curtain {
+        min-height: 100vh;
+        background: #0c1217;
+        color: #e9e7e2;
+        font-family: var(--font-sans);
+        display: flex;
+        flex-direction: column;
+    }
+    .curtain__hd {
+        text-align: center;
+        padding: var(--s-8) var(--s-5) var(--s-6);
+        border-bottom: 1px solid rgba(184,153,104,0.25);
+        background: linear-gradient(180deg, rgba(184,153,104,0.06) 0%, transparent 100%);
+    }
+    .curtain__brand {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s-3);
+        margin-bottom: var(--s-5);
+    }
+    .curtain__brand svg { color: var(--brass-300); }
+    .curtain__brand-name {
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: var(--t-2xl);
+        letter-spacing: -0.01em;
+        color: #faf8f3;
+    }
+    .curtain__title {
+        font-family: var(--font-serif);
+        font-weight: 700;
+        font-size: clamp(var(--t-2xl), 3.5vw, var(--t-5xl));
+        margin: 0;
+        color: #faf8f3;
+        line-height: 1.15;
+    }
+    .curtain__chip {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--s-2);
+        margin-top: var(--s-4);
+        padding: var(--s-2) var(--s-5);
+        border: 1.5px solid var(--brass-500);
+        color: var(--brass-300);
+        font-family: var(--font-sans);
+        font-weight: 600;
+        font-size: var(--t-sm);
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        border-radius: 2px;
+    }
+    .curtain__chip--live { border-color: var(--ink-300); color: var(--ink-200); }
+    .curtain__chip--live::before {
+        content: '';
+        width: 8px; height: 8px;
+        background: var(--ink-300);
+        border-radius: 50%;
+        animation: pulse-dot 1.5s infinite;
+    }
+    @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-    <!-- ===== HEADER ===== -->
-    <header class="text-center py-4 border-bottom border-secondary" style="background: rgba(255,255,255,0.04);">
-        <div class="d-flex justify-content-center align-items-center gap-3 mb-2">
-            <img src="/assets/img/logo.svg" alt="Oyla" height="48"
-                 onerror="this.style.display='none'" class="opacity-75">
-            <span class="fw-bold" style="font-size: 2rem; letter-spacing:.03em; opacity:.85;">Oyla</span>
+    .curtain__main {
+        flex: 1;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: var(--s-8) var(--s-5);
+        width: 100%;
+    }
+    .curtain__dots {
+        display: flex;
+        gap: var(--s-2);
+        justify-content: center;
+        margin-bottom: var(--s-6);
+    }
+    .curtain-dot {
+        width: 32px; height: 4px;
+        background: rgba(255,255,255,0.15);
+        border: 0;
+        cursor: pointer;
+        border-radius: 2px;
+        transition: background 200ms ease;
+    }
+    .curtain-dot.active { background: var(--brass-300); }
+    .curtain-dot:hover  { background: rgba(255,255,255,0.4); }
+
+    .curtain__ballot-title {
+        text-align: center;
+        font-family: var(--font-serif);
+        font-weight: 600;
+        font-size: clamp(var(--t-xl), 2.5vw, var(--t-3xl));
+        color: #faf8f3;
+        margin: 0;
+    }
+    .curtain__ballot-meta {
+        text-align: center;
+        font-size: var(--t-sm);
+        color: rgba(255,255,255,0.55);
+        margin: var(--s-2) 0 var(--s-6);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .curtain__row {
+        display: flex;
+        align-items: center;
+        gap: var(--s-3);
+        padding: var(--s-3) var(--s-4);
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: var(--r-sm);
+        margin-bottom: var(--s-2);
+    }
+    .curtain__row--win {
+        background: rgba(29,158,117,0.10);
+        border-color: rgba(29,158,117,0.4);
+        border-left: 3px solid var(--ink-400);
+    }
+    .curtain__rank {
+        font-family: var(--font-serif);
+        font-weight: 600;
+        color: rgba(255,255,255,0.4);
+        font-size: var(--t-md);
+        min-width: 28px;
+        font-variant-numeric: tabular-nums;
+    }
+    .curtain__avatar {
+        width: 44px; height: 44px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.15);
+        flex-shrink: 0;
+        overflow: hidden;
+        display: grid; place-items: center;
+        color: rgba(255,255,255,0.4);
+    }
+    .curtain__avatar img { width:100%;height:100%;object-fit:cover; }
+    .curtain__row--win .curtain__avatar { border-color: var(--ink-400); }
+    .curtain__name {
+        flex: 1; min-width: 0;
+    }
+    .curtain__name-text {
+        display: block;
+        font-size: clamp(var(--t-md), 1.4vw, var(--t-xl));
+        color: #faf8f3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .curtain__row--win .curtain__name-text { font-weight: 600; }
+    .curtain__bar-wrap {
+        height: 6px;
+        background: rgba(255,255,255,0.08);
+        border-radius: 2px;
+        overflow: hidden;
+        margin-top: var(--s-1);
+    }
+    .curtain__bar {
+        height: 100%;
+        background: var(--char-400);
+        transition: width 600ms ease;
+    }
+    .curtain__bar--win   { background: var(--ink-400); }
+    .curtain__bar--yedek { background: var(--brass-400, var(--brass-300)); }
+    .curtain__count {
+        font-family: var(--font-serif);
+        font-weight: 600;
+        font-size: clamp(var(--t-md), 1.4vw, var(--t-xl));
+        color: #faf8f3;
+        font-variant-numeric: tabular-nums;
+        min-width: 60px;
+        text-align: right;
+    }
+
+    .curtain__ft {
+        border-top: 1px solid rgba(184,153,104,0.25);
+        padding: var(--s-5);
+        display: flex;
+        align-items: center;
+        gap: var(--s-5);
+        flex-wrap: wrap;
+        background: rgba(0,0,0,0.2);
+    }
+    .curtain__ft-label {
+        color: rgba(255,255,255,0.5);
+        font-size: var(--t-sm);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+    .curtain__ft-value {
+        font-family: var(--font-serif);
+        font-weight: 600;
+        font-size: var(--t-lg);
+        color: #faf8f3;
+        font-variant-numeric: tabular-nums;
+    }
+    .curtain__ft-bar {
+        flex: 1; min-width: 200px;
+        height: 8px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 2px;
+        overflow: hidden;
+    }
+    .curtain__ft-fill { height: 100%; background: var(--ink-400); transition: width 600ms ease; }
+</style>
+
+<div class="curtain">
+
+    <header class="curtain__hd">
+        <div class="curtain__brand">
+            <span aria-hidden="true"><?php @readfile(PUBLIC_PATH . '/assets/img/logo-mono.svg'); ?></span>
+            <span class="curtain__brand-name">Oyla</span>
         </div>
-        <h1 class="fw-bold mb-1" style="font-size: clamp(1.4rem, 3vw, 2.4rem);">
-            <?= e($election['title']) ?>
-        </h1>
+        <h1 class="curtain__title"><?= e($election['title']) ?></h1>
         <?php if ($isClosed): ?>
-        <div class="d-inline-block mt-2 px-4 py-1 border rounded-pill"
-             style="border-color: #ffd700 !important; color: #ffd700; font-size:1.1rem; font-weight:700; letter-spacing:.05em;">
-            RESMİ SONUÇLAR
-        </div>
+        <div class="curtain__chip">Resmî Sonuçlar</div>
         <?php elseif ($isOpen): ?>
-        <div class="badge bg-success fs-6 mt-2 px-3 py-2">
-            <span class="me-2" style="display:inline-block; width:10px; height:10px; background:#fff; border-radius:50%; animation: blink 1.2s infinite;"></span>
-            DEVAM EDİYOR
-        </div>
+        <div class="curtain__chip curtain__chip--live">Devam Ediyor</div>
         <?php endif; ?>
     </header>
 
-    <!-- ===== BALLOT SECTIONS ===== -->
-    <main class="flex-grow-1 container-fluid px-4 py-4" style="max-width: 1400px; margin: 0 auto;">
+    <main class="curtain__main">
 
         <?php if (empty($results)): ?>
-        <div class="text-center opacity-75 mt-5">
-            <i class="bi bi-hourglass-split fs-1"></i>
-            <p class="mt-3 fs-5">Seçim kurulları henüz tanımlanmamış.</p>
+        <div style="text-align:center;color:rgba(255,255,255,0.5);padding:var(--s-16);">
+            <p style="font-family:var(--font-serif);font-size:var(--t-xl);">Seçim kurulları henüz tanımlanmamış.</p>
         </div>
         <?php else: ?>
 
-        <!-- Ballot index indicator -->
         <?php if (count($results) > 1): ?>
-        <div class="d-flex justify-content-center gap-2 mb-4" id="curtain-dots">
+        <div class="curtain__dots" id="curtain-dots">
             <?php foreach ($results as $i => $_): ?>
-            <div class="curtain-dot rounded-circle <?= $i === 0 ? 'active' : '' ?>"
-                 data-index="<?= $i ?>"
-                 style="width:12px; height:12px; background: <?= $i === 0 ? '#fff' : 'rgba(255,255,255,0.3)' ?>; cursor:pointer; transition: background .3s;">
-            </div>
+            <button class="curtain-dot <?= $i === 0 ? 'active' : '' ?>" data-index="<?= $i ?>" aria-label="Kurul <?= $i+1 ?>"></button>
             <?php endforeach; ?>
         </div>
         <?php endif; ?>
@@ -71,147 +254,73 @@ $participationPct = $totalMembers > 0
 
             $maxVotes = 0;
             foreach ($candidates as $c) {
-                if ((int) $c['vote_count'] > $maxVotes) {
-                    $maxVotes = (int) $c['vote_count'];
-                }
+                if ((int) $c['vote_count'] > $maxVotes) $maxVotes = (int) $c['vote_count'];
             }
         ?>
-        <div class="ballot-section" id="ballot-section-<?= $i ?>"
-             data-ballot-id="<?= (int) $ballot['id'] ?>"
-             data-quota="<?= $quota ?>"
-             data-yedek-quota="<?= $yedekQuota ?>"
-             style="<?= $i > 0 ? 'display:none;' : '' ?>">
+        <section class="ballot-section"
+                 id="ballot-section-<?= $i ?>"
+                 data-ballot-id="<?= (int) $ballot['id'] ?>"
+                 data-quota="<?= $quota ?>"
+                 data-yedek-quota="<?= $yedekQuota ?>"
+                 style="<?= $i > 0 ? 'display:none;' : '' ?>">
 
-            <!-- Kurul başlığı -->
-            <div class="text-center mb-4">
-                <h2 class="fw-bold" style="font-size: clamp(1.4rem, 2.5vw, 2rem);">
-                    <?= e($ballot['title']) ?>
-                </h2>
-                <div class="d-flex justify-content-center gap-3 flex-wrap">
-                    <span style="color: rgba(255,255,255,.6); font-size:.95rem;">
-                        <i class="bi bi-trophy-fill me-1" style="color:#ffd700;"></i>
-                        <?= $quota ?> asıl
-                        <?php if ($yedekQuota > 0): ?> &bull; <?= $yedekQuota ?> yedek<?php endif; ?>
-                        seçilecek
-                    </span>
-                    <span style="color: rgba(255,255,255,.6); font-size:.95rem;" id="curtain-total-votes-<?= $i ?>">
-                        Toplam oy: <strong style="color:#fff;"><?= $totalVotes ?></strong>
-                    </span>
-                </div>
-            </div>
+            <h2 class="curtain__ballot-title"><?= e($ballot['title']) ?></h2>
+            <p class="curtain__ballot-meta">
+                <?= $quota ?> asıl<?php if ($yedekQuota > 0): ?> · <?= $yedekQuota ?> yedek<?php endif; ?>
+                · Toplam oy: <span id="curtain-total-votes-<?= $i ?>"><?= $totalVotes ?></span>
+            </p>
 
-            <!-- Bar chart -->
-            <div class="row g-2" id="curtain-chart-<?= $i ?>">
+            <div class="ds-grid ds-grid-cols-2 ds-grid-cols-sm-1 ds-gap-3" id="curtain-chart-<?= $i ?>">
             <?php foreach ($candidates as $rank => $candidate):
                 $voteCount = (int) $candidate['vote_count'];
                 $barWidth  = $maxVotes > 0 ? round($voteCount / $maxVotes * 100) : 0;
                 $isWinner  = ($rank + 1) <= $quota;
                 $isYedek   = !$isWinner && ($rank + 1) <= ($quota + $yedekQuota);
-
-                if ($isWinner) {
-                    $barColor = '#1D9E75';
-                    $nameColor = '#86efac';
-                } elseif ($isYedek) {
-                    $barColor = '#5cbf96';
-                    $nameColor = '#bae6fd';
-                } else {
-                    $barColor = '#6b7280';
-                    $nameColor = 'rgba(255,255,255,.7)';
-                }
+                $barClass = $isWinner ? 'curtain__bar--win' : ($isYedek ? 'curtain__bar--yedek' : '');
             ?>
-            <div class="col-12 col-xl-6">
-                <div class="d-flex align-items-center gap-3 rounded-3 px-3 py-2
-                     <?= $isClosed && $isWinner ? 'winner-curtain-row' : '' ?>"
-                     style="<?= $isClosed && $isWinner ? "background: rgba(29,158,117,.12); border: 2px solid rgba(29,158,117,.4);" : "background: rgba(255,255,255,.05);" ?>">
-
-                    <!-- Sıra -->
-                    <span style="color: rgba(255,255,255,.4); font-size:.9rem; min-width:1.4rem;"><?= $rank + 1 ?>.</span>
-
-                    <!-- Avatar -->
-                    <?php if (!empty($candidate['photo_path']) && file_exists(PUBLIC_PATH . $candidate['photo_path'])): ?>
-                    <img src="<?= e($candidate['photo_path']) ?>" class="rounded-circle flex-shrink-0"
-                         width="44" height="44" alt="" loading="lazy" style="object-fit:cover; border: 2px solid <?= $isWinner ? '#1D9E75' : 'rgba(255,255,255,.15)' ?>;">
-                    <?php else: ?>
-                    <svg viewBox="0 0 44 44" width="44" height="44" class="rounded-circle flex-shrink-0">
-                        <rect width="44" height="44" rx="22" fill="rgba(255,255,255,.08)"/>
-                        <circle cx="22" cy="17" r="7" fill="rgba(255,255,255,.3)"/>
-                        <path d="M5 42c0-8.3 7.6-13 17-13s17 4.7 17 13" fill="rgba(255,255,255,.3)"/>
-                    </svg>
-                    <?php endif; ?>
-
-                    <!-- İsim + bar -->
-                    <div class="flex-grow-1 min-w-0">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="text-truncate fw-<?= $isWinner ? 'bold' : 'normal' ?>"
-                                  style="color: <?= $nameColor ?>; font-size: clamp(.9rem, 1.4vw, 1.2rem);">
-                                <?= e($candidate['name']) ?>
-                                <?php if ($isClosed && $isWinner): ?>
-                                <i class="bi bi-trophy-fill ms-1" style="color:#ffd700;"></i>
-                                <?php endif; ?>
-                            </span>
-                            <span class="fw-bold flex-shrink-0 ms-2" style="color:#fff; font-size: clamp(.9rem, 1.4vw, 1.2rem);"
-                                  data-vote-count="<?= $voteCount ?>">
-                                <?= $voteCount ?>
-                            </span>
-                        </div>
-                        <div class="rounded-pill overflow-hidden" style="height:8px; background: rgba(255,255,255,.1);">
-                            <div class="result-bar rounded-pill"
-                                 style="height:100%; width:<?= $barWidth ?>%; background: <?= $barColor ?>; transition: width .6s ease;"
-                                 data-max-votes="<?= $maxVotes ?>">
-                            </div>
-                        </div>
+            <article class="curtain__row <?= $isWinner ? 'curtain__row--win' : '' ?>">
+                <span class="curtain__rank"><?= $rank + 1 ?></span>
+                <?php if (!empty($candidate['photo_path']) && file_exists(PUBLIC_PATH . $candidate['photo_path'])): ?>
+                <span class="curtain__avatar"><img src="<?= e($candidate['photo_path']) ?>" alt="" loading="lazy"></span>
+                <?php else: ?>
+                <span class="curtain__avatar" aria-hidden="true"><i class="bi bi-person"></i></span>
+                <?php endif; ?>
+                <div class="curtain__name">
+                    <span class="curtain__name-text">
+                        <?= e($candidate['name']) ?>
+                        <?php if ($isClosed && $isWinner): ?>
+                        <i class="bi bi-trophy" style="color:var(--brass-300);font-size:0.85em;" aria-hidden="true"></i>
+                        <?php endif; ?>
+                    </span>
+                    <div class="curtain__bar-wrap">
+                        <div class="result-bar curtain__bar <?= $barClass ?>" style="width:<?= $barWidth ?>%" data-max-votes="<?= $maxVotes ?>"></div>
                     </div>
                 </div>
-            </div>
+                <span class="curtain__count" data-vote-count="<?= $voteCount ?>"><?= $voteCount ?></span>
+            </article>
             <?php endforeach; ?>
-            </div><!-- /row -->
-
-        </div><!-- /ballot-section -->
+            </div>
+        </section>
         <?php endforeach; ?>
         <?php endif; ?>
 
     </main>
 
-    <!-- ===== FOOTER — KATILIM ===== -->
-    <footer class="py-3 px-4 border-top border-secondary" style="background: rgba(255,255,255,.04);">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <div class="d-flex align-items-center gap-3">
-                <span style="color: rgba(255,255,255,.6); font-size:.95rem;">
-                    <i class="bi bi-people-fill me-1"></i>Katılım:
-                </span>
-                <span class="fw-bold" style="font-size:1.1rem;">
-                    <span id="curtain-voted"><?= (int) $votedMembers ?></span>
-                    / <span id="curtain-total"><?= (int) $totalMembers ?></span>
-                    <span style="color: rgba(255,255,255,.5);">
-                        (%<span id="curtain-pct"><?= $participationPct ?></span>)
-                    </span>
-                </span>
-            </div>
-            <div style="flex: 1; min-width: 200px; max-width: 400px;">
-                <div class="rounded-pill overflow-hidden" style="height:10px; background: rgba(255,255,255,.12);">
-                    <div id="curtain-participation-bar" class="rounded-pill"
-                         style="height:100%; width:<?= $participationPct ?>%; background: #1D9E75; transition: width .6s ease;">
-                    </div>
-                </div>
-            </div>
-            <?php if ($isOpen): ?>
-            <span style="color: rgba(255,255,255,.4); font-size:.85rem;">
-                <i class="bi bi-arrow-repeat me-1"></i>Canlı güncelleniyor
-            </span>
-            <?php endif; ?>
+    <footer class="curtain__ft">
+        <span class="curtain__ft-label"><i class="bi bi-people" aria-hidden="true"></i> Katılım</span>
+        <span class="curtain__ft-value">
+            <span id="curtain-voted"><?= (int) $votedMembers ?></span>
+            <span style="color:rgba(255,255,255,0.4)">/</span>
+            <span id="curtain-total"><?= (int) $totalMembers ?></span>
+            <span style="color:rgba(255,255,255,0.5);font-size:var(--t-sm);font-weight:400;">(%<span id="curtain-pct"><?= $participationPct ?></span>)</span>
+        </span>
+        <div class="curtain__ft-bar">
+            <div class="curtain__ft-fill" id="curtain-participation-bar" style="width:<?= $participationPct ?>%"></div>
         </div>
+        <?php if ($isOpen): ?>
+        <span class="curtain__ft-label" style="font-size:var(--t-xs);"><i class="bi bi-arrow-repeat" aria-hidden="true"></i> Canlı</span>
+        <?php endif; ?>
     </footer>
-
 </div>
 
-<style>
-@keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.2; }
-}
-.curtain-dot:hover {
-    background: rgba(255,255,255,.7) !important;
-}
-</style>
-
-<script src="/assets/js/sonuc.js"></script>
+<script src="<?= asset('js/sonuc.js') ?>"></script>

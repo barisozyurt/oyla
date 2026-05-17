@@ -1,0 +1,79 @@
+#!/usr/bin/env php
+<?php
+/**
+ * Oyla — Activity log bütünlük denetimi (cron).
+ *
+ * activity_log hash chain'inin bozulup bozulmadığını kontrol eder.
+ * Bozulma varsa exit kodu 2 döner, --webhook ile Slack/webhook çağrılır.
+ *
+ * Cron örneği (saatte bir):
+ *   0 * * * * cd /var/www/oyla && bin/audit-monitor --webhook https://hooks.slack.com/... >> logs/audit.log 2>&1
+ */
+
+declare(strict_types=1);
+
+require dirname(__DIR__) . '/vendor/autoload.php';
+
+$basePath = dirname(__DIR__);
+if (file_exists($basePath . '/.env')) {
+    $dotenv = Dotenv\Dotenv::createImmutable($basePath);
+    $dotenv->safeLoad();
+}
+
+use App\Core\Logger;
+use App\Services\ActivityLogService;
+
+$webhook = null;
+foreach ($argv as $i => $arg) {
+    if ($arg === '--webhook' && isset($argv[$i + 1])) {
+        $webhook = $argv[$i + 1];
+    }
+}
+
+echo "[~] Audit log bütünlük denetimi başladı: " . date('c') . "\n";
+
+try {
+    $result = ActivityLogService::verifyChain();
+
+    if ($result['ok']) {
+        echo "[OK] {$result['total']} kayıt doğrulandı, zincir sağlam.\n";
+        exit(0);
+    }
+
+    echo "[!] BÜTÜNLÜK İHLALİ — " . count($result['broken']) . " bozuk kayıt tespit edildi:\n";
+    foreach ($result['broken'] as $row) {
+        echo "    #{$row['id']}: {$row['reason']}\n";
+    }
+
+    Logger::critical('Audit log integrity violation', [
+        'total'       => $result['total'],
+        'broken_ids'  => array_column($result['broken'], 'id'),
+    ]);
+
+    if ($webhook) {
+        $msg = sprintf(
+            '🚨 Oyla audit log integrity violation: %d/%d records broken. Host: %s, time: %s',
+            count($result['broken']),
+            $result['total'],
+            gethostname() ?: 'unknown',
+            date('c')
+        );
+        $payload = json_encode(['text' => $msg]);
+        $ch = curl_init($webhook);
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $payload,
+            CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 5,
+        ]);
+        curl_exec($ch);
+        curl_close($ch);
+    }
+    exit(2);
+
+} catch (Throwable $e) {
+    fwrite(STDERR, "[-] Hata: " . $e->getMessage() . "\n");
+    Logger::error('Audit log check failed', ['err' => $e->getMessage()]);
+    exit(1);
+}

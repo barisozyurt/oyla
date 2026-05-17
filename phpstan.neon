@@ -1,0 +1,22 @@
+parameters:
+    level: 5
+    paths:
+        - app
+        - bin
+        - public
+    excludePaths:
+        - vendor
+        - tests
+        - public/assets
+        - app/Views      # View::render extract() — PHPStan göremez
+    treatPhpDocTypesAsCertain: false
+    ignoreErrors:
+        # Custom helpers loaded via composer autoload-files
+        - '#^Function (e|asset|isUrl|csrf_field|csrf_token|flash|getFlash|__) not found\.$#'
+        # Bin scripts use envRead() helper defined inline
+        - '#^Function envRead not found\.$#'
+        # PUBLIC_PATH defined in public/index.php
+        - '#PUBLIC_PATH#'
+        # PHPUnit Test\* loading
+        - '#PHPUnit\\Framework\\TestCase#'
+    # Bootstrap ignored — Dotenv may not be loaded

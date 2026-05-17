@@ -45,6 +45,12 @@ class Database
         return $this->pdo->prepare($sql);
     }
 
+    /** Hazırlık gerektirmeyen sorgular için (örn. ActivityLogService::verifyChain). */
+    public function query(string $sql): \PDOStatement
+    {
+        return $this->pdo->query($sql);
+    }
+
     public function lastInsertId(): string
     {
         return $this->pdo->lastInsertId();
