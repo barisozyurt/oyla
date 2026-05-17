@@ -23,16 +23,23 @@
         </exclude>
     </source>
     <php>
-        <env name="APP_ENV" value="testing"/>
-        <env name="APP_DEBUG" value="true"/>
+        <!--
+            force="true": $_ENV ve $_SERVER'a da yazsın (default sadece putenv yapar).
+            CI ortamı zaten DB_USER/DB_PASS set'liyor; force=true yerel test
+            koşumunda phpunit'in kendi değerlerini geçerli kılar.
+            CI'da değerleri OVERRIDE etmemek için "DB_*" ve "APP_SECRET" gibi
+            CI-spesifik olanlarda force=false bırakıyoruz — CI env'i geçerli kalsın.
+        -->
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="APP_DEBUG" value="true" force="true"/>
         <env name="DB_HOST" value="127.0.0.1"/>
         <env name="DB_PORT" value="3306"/>
         <env name="DB_NAME" value="oyla_test"/>
         <env name="DB_USER" value="oyla_test"/>
         <env name="DB_PASS" value="phpunit_test_password_strong"/>
-        <env name="SMS_MOCK" value="true"/>
+        <env name="SMS_MOCK" value="true" force="true"/>
         <env name="APP_SECRET" value="phpunit_app_secret_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"/>
         <env name="TOKEN_SECRET" value="phpunit_token_secret_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"/>
-        <env name="TOKEN_EXPIRE_MINUTES" value="120"/>
+        <env name="TOKEN_EXPIRE_MINUTES" value="120" force="true"/>
     </php>
 </phpunit>
