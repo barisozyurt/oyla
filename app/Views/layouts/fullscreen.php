@@ -18,7 +18,7 @@ $theme = str_contains($bodyClass, 'voting-mode') ? 'light' : 'dark';
     <link rel="icon" type="image/svg+xml" href="<?= asset('img/logo.svg') ?>">
     <link rel="stylesheet" href="<?= asset('css/design-system.css') ?>">
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/assets/vendor/bootstrap-icons/bootstrap-icons.min.css">
 
     <style>
         html, body { margin: 0; padding: 0; }
