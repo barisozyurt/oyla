@@ -18,6 +18,7 @@ $uri  = $_SERVER['REQUEST_URI'] ?? '';
     <title><?= e($pageTitle ?? 'Oyla') ?> · Oyla</title>
 
     <link rel="icon" type="image/svg+xml" href="<?= asset('img/logo.svg') ?>">
+    <link rel="stylesheet" href="/assets/vendor/bootstrap/bootstrap.min.css">
     <link rel="stylesheet" href="<?= asset('css/design-system.css') ?>">
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
     <link rel="stylesheet" href="/assets/vendor/bootstrap-icons/bootstrap-icons.min.css">
@@ -173,6 +174,7 @@ $flashInfo    = getFlash('info');
 
 <div class="ds-toast-stack" id="ds-toast-stack" aria-live="polite" aria-atomic="false"></div>
 
+<script src="/assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
 <script src="<?= asset('js/nav.js') ?>"></script>
 <script src="<?= asset('js/app.js') ?>"></script>
 <?php if (str_starts_with($uri, '/admin')): ?>

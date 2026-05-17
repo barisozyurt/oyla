@@ -83,7 +83,7 @@ $roleLabels = [
                         <?php if ((int) ($user['is_active'] ?? 1) === 1): ?>
                         <form method="POST" action="/admin/users/delete/<?= (int) $user['id'] ?>"
                               class="d-inline"
-                              onsubmit="return confirm('\"<?= e(addslashes($user['name'])) ?>\" kullanıcısını pasife almak istediğinizden emin misiniz?')">
+                              onsubmit="return confirm('\"<?= e(addslashes($user['name'] ?? $user['username'])) ?>\" kullanıcısını pasife almak istediğinizden emin misiniz?')">
                             <?= csrf_field() ?>
                             <button type="submit" class="btn btn-sm btn-outline-danger">
                                 <i class="bi bi-person-x-fill"></i>
