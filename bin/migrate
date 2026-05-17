@@ -22,11 +22,26 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 use App\Core\Config;
 use App\Core\Logger;
 
-// .env yükle
+// .env yükle (varsa). CI'da .env yok — env değişkenleri doğrudan process'e gelir.
 $basePath = dirname(__DIR__);
 if (file_exists($basePath . '/.env')) {
     $dotenv = Dotenv\Dotenv::createImmutable($basePath);
     $dotenv->safeLoad();
+}
+
+/**
+ * Env okuma helper'ı:
+ * - $_ENV → dotenv'den ya da variables_order'da "E" varsa env'den gelir
+ * - getenv() → CI'da `env:` ile set edilen değişkenler için fallback
+ * - $_SERVER → bazı SAPI'larda env değişkenleri buraya da düşer
+ */
+function envRead(string $key, ?string $default = null): ?string
+{
+    $v = $_ENV[$key] ?? getenv($key);
+    if ($v === false || $v === null || $v === '') {
+        $v = $_SERVER[$key] ?? null;
+    }
+    return ($v === false || $v === null || $v === '') ? $default : (string) $v;
 }
 
 $migrationsDir = $basePath . '/database/migrations';
@@ -34,15 +49,29 @@ $status     = in_array('--status', $argv, true);
 $rollback   = in_array('--rollback', $argv, true);
 $fresh      = in_array('--fresh', $argv, true);
 
-$dsn = sprintf(
-    'mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
-    $_ENV['DB_HOST'] ?? '127.0.0.1',
-    $_ENV['DB_PORT'] ?? '3306',
-    $_ENV['DB_NAME'] ?? 'oyla'
-);
+$dbHost = envRead('DB_HOST', '127.0.0.1');
+$dbPort = envRead('DB_PORT', '3306');
+$dbName = envRead('DB_NAME', 'oyla');
+$dbUser = envRead('DB_USER', 'root');
+$dbPass = envRead('DB_PASS', '');
+
+// Config sınıfının validateBoot mantığını tetiklemek için $_ENV'a da yaz
+$_ENV['DB_HOST'] = $dbHost;
+$_ENV['DB_PORT'] = $dbPort;
+$_ENV['DB_NAME'] = $dbName;
+$_ENV['DB_USER'] = $dbUser;
+$_ENV['DB_PASS'] = $dbPass;
+foreach (['APP_ENV', 'APP_SECRET', 'TOKEN_SECRET', 'SMS_MOCK'] as $k) {
+    if (!isset($_ENV[$k])) {
+        $val = envRead($k);
+        if ($val !== null) $_ENV[$k] = $val;
+    }
+}
+
+$dsn = sprintf('mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4', $dbHost, $dbPort, $dbName);
 
 try {
-    $pdo = new PDO($dsn, $_ENV['DB_USER'] ?? 'root', $_ENV['DB_PASS'] ?? '', [
+    $pdo = new PDO($dsn, $dbUser, $dbPass, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     ]);
 } catch (PDOException $e) {
