@@ -18,18 +18,17 @@ $uri  = $_SERVER['REQUEST_URI'] ?? '';
     <title><?= e($pageTitle ?? 'Oyla') ?> · Oyla</title>
 
     <link rel="icon" type="image/svg+xml" href="<?= asset('img/logo.svg') ?>">
+    <link rel="stylesheet" href="/assets/vendor/bootstrap/bootstrap.min.css">
     <link rel="stylesheet" href="<?= asset('css/design-system.css') ?>">
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/assets/vendor/bootstrap-icons/bootstrap-icons.min.css">
 </head>
 <body class="ds-page">
 
 <header class="ds-nav">
     <div class="ds-nav__inner">
         <a class="ds-nav__brand" href="/" aria-label="Oyla ana sayfa">
-            <span class="ds-nav__brand__mark" aria-hidden="true">
-                <?php @readfile(PUBLIC_PATH . '/assets/img/logo.svg'); ?>
-            </span>
+            <img src="<?= asset('img/logo-icon.svg') ?>" alt="" width="36" height="36" class="ds-nav__brand__mark">
             <span>
                 <span class="ds-nav__brand__name">Oyla</span>
                 <span class="ds-nav__brand__tag">Dernek Seçim Sistemi</span>
@@ -99,7 +98,7 @@ $uri  = $_SERVER['REQUEST_URI'] ?? '';
             <a class="ds-nav__user" href="#" aria-haspopup="true">
                 <span class="ds-nav__user__chip" aria-hidden="true"><?= e(mb_substr($user['name'] ?? 'O', 0, 1, 'UTF-8')) ?></span>
                 <span><?= e($user['name'] ?? 'Kullanıcı') ?></span>
-                <i class="bi bi-chevron-down" aria-hidden="true" style="font-size:10px"></i>
+                <svg width="10" height="10" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </a>
             <ul class="ds-nav__menu" role="menu">
                 <li>
@@ -120,7 +119,11 @@ $uri  = $_SERVER['REQUEST_URI'] ?? '';
         </div>
         <?php else: ?>
         <a class="ds-btn ds-btn--ghost" href="/auth/login">
-            <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>Giriş
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M10 2h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M6 5l3 3-3 3M9 8H2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Giriş
         </a>
         <?php endif; ?>
     </div>
@@ -162,36 +165,17 @@ $flashInfo    = getFlash('info');
 
 <footer class="ds-footer">
     <div class="ds-footer__inner">
-        <span>&copy; <?= date('Y') ?> Oyla &middot; <span class="ds-footer__mark">Dernek Seçim Sistemi</span></span>
+        <span>
+            <a href="https://mirket.io" target="_blank" rel="noopener" class="ds-footer__mark" style="color:inherit;text-decoration:none;">mirket.io</a>
+        </span>
         <span>Türk derneklerinin organ seçimleri için tasarlandı.</span>
     </div>
 </footer>
 
 <div class="ds-toast-stack" id="ds-toast-stack" aria-live="polite" aria-atomic="false"></div>
 
-<script>
-    // Minimal nav toggle (hamburger)
-    document.querySelectorAll('[data-toggle]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const target = document.getElementById(btn.dataset.toggle);
-            if (target) target.classList.toggle(btn.dataset.toggle + '--open');
-        });
-    });
-    // Dropdown — klavye için manuel toggle
-    document.querySelectorAll('.ds-nav__group > a').forEach(trigger => {
-        trigger.addEventListener('click', (e) => {
-            e.preventDefault();
-            const menu = trigger.parentElement.querySelector('.ds-nav__menu');
-            if (menu) menu.classList.toggle('ds-nav__menu--open');
-        });
-    });
-    // Dış tıklamada kapat
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.ds-nav__group')) {
-            document.querySelectorAll('.ds-nav__menu--open').forEach(m => m.classList.remove('ds-nav__menu--open'));
-        }
-    });
-</script>
+<script src="/assets/vendor/bootstrap/bootstrap.bundle.min.js"></script>
+<script src="<?= asset('js/nav.js') ?>"></script>
 <script src="<?= asset('js/app.js') ?>"></script>
 <?php if (str_starts_with($uri, '/admin')): ?>
 <script src="<?= asset('js/admin.js') ?>"></script>

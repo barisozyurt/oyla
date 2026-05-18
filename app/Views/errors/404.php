@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>404 · Sayfa Bulunamadı · Oyla</title>
     <link rel="stylesheet" href="/assets/css/design-system.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/assets/vendor/bootstrap-icons/bootstrap-icons.min.css">
 </head>
 <body style="min-height:100vh;display:grid;place-items:center;padding:var(--s-5);">
 <main style="max-width:560px;text-align:center;">

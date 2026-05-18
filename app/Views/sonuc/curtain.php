@@ -218,8 +218,7 @@ $participationPct = $totalMembers > 0 ? round($votedMembers / $totalMembers * 10
 
     <header class="curtain__hd">
         <div class="curtain__brand">
-            <span aria-hidden="true"><?php @readfile(PUBLIC_PATH . '/assets/img/logo-mono.svg'); ?></span>
-            <span class="curtain__brand-name">Oyla</span>
+            <img src="<?= asset('img/logo-dark.svg') ?>" alt="Oyla" height="44" style="display:block">
         </div>
         <h1 class="curtain__title"><?= e($election['title']) ?></h1>
         <?php if ($isClosed): ?>

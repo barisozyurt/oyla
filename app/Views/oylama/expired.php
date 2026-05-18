@@ -60,7 +60,7 @@ $meta = $reasonMeta[$reason ?? ''] ?? [
 
 $bodyClass = 'voting-mode';
 ?>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="/assets/vendor/bootstrap-icons/bootstrap-icons.min.css">
 <style>
     .expired-wrapper { max-width: 460px; margin: 0 auto; padding: 64px 20px 40px; text-align: center; color: #1e293b; }
     .expired-icon    { width: 96px; height: 96px; background: #fef2f2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 44px; color: <?= htmlspecialchars($meta['color'], ENT_QUOTES) ?>; }
